@@ -1,0 +1,666 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>London Pub Ledger</title>
+<meta name="theme-color" content="#dc241f">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Pub Ledger">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700;800&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: real Leaflet map up top, ledger list below; built for a phone in a pub doorway. */
+:root{
+  --bg:#f2f1ea; --panel:#fbfaf5; --ink:#1d2127; --mut:#656e76; --line:#d9d6c8;
+  --red:#dc241f; --red-ink:#ffffff;
+  --green:#2a7a44; --amber:#a86f0e;
+  --chip:#e9e7db; --focus:#2b5fab;
+  --font-ui:"Hanken Grotesk",-apple-system,"Segoe UI",sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#13171b; --panel:#1b2127; --ink:#e9e7de; --mut:#9aa3ac; --line:#2c343c;
+    --red:#e2453f; --red-ink:#ffffff;
+    --green:#5cab73; --amber:#d49c3f;
+    --chip:#242c33; --focus:#7aa7e8;
+    color-scheme: dark;
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  background:var(--bg); color:var(--ink); font-family:var(--font-ui);
+  padding:env(safe-area-inset-top,0px) 16px calc(48px + env(safe-area-inset-bottom,0px));
+  line-height:1.45; max-width:860px; margin-inline:auto;
+}
+h1,h2,h3{margin:0; text-wrap:balance}
+button{font:inherit; color:inherit; cursor:pointer}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--focus); outline-offset:2px; border-radius:4px}
+img{max-width:100%}
+[hidden]{display:none!important}
+
+header{display:flex; align-items:center; gap:14px; padding-block:18px 10px; flex-wrap:wrap}
+.roundel{flex:0 0 auto; width:58px; height:58px}
+.roundel svg{display:block; width:100%; height:100%}
+.masthead{flex:1 1 180px; min-width:0}
+.masthead h1{font-size:21px; font-weight:800; letter-spacing:.04em; text-transform:uppercase}
+.masthead .sub{color:var(--mut); font-size:13px; margin-top:2px}
+.clockbox{flex:0 0 auto; text-align:right; font-family:var(--font-mono)}
+.clockbox .t{font-size:21px; font-weight:500; font-variant-numeric:tabular-nums}
+.clockbox .d{color:var(--mut); font-size:11.5px; letter-spacing:.03em}
+.scorebar{
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  background:var(--red); color:var(--red-ink); border-radius:8px;
+  padding:7px 14px; font-weight:700; letter-spacing:.06em; font-size:13.5px; text-transform:uppercase;
+}
+.scorebar .count{font-family:var(--font-mono); font-weight:500; letter-spacing:0; font-variant-numeric:tabular-nums}
+.syncchip{font-size:11px; font-weight:600; letter-spacing:.05em; padding:2px 8px; border-radius:99px; background:rgba(255,255,255,.18)}
+
+.board{background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:12px 14px; margin-top:14px}
+.board .bh{font-size:11px; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--mut); margin-bottom:6px}
+.board ul{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:6px}
+.board li{font-size:14px; display:flex; gap:10px; align-items:baseline}
+.board li .ts{font-family:var(--font-mono); font-size:10.5px; color:var(--mut); flex:0 0 auto}
+.board li .tx{min-width:0}
+
+.mapwrap{margin-top:14px; background:var(--panel); border:1px solid var(--line); border-radius:10px; overflow:hidden}
+.maptools{display:flex; align-items:center; gap:8px; padding:10px 12px; border-bottom:1px solid var(--line); flex-wrap:wrap}
+.btn{border:1.5px solid var(--ink); background:transparent; border-radius:7px; padding:7px 14px; font-weight:700; font-size:13px}
+.btn.primary{background:var(--red); border-color:var(--red); color:var(--red-ink)}
+.btn.small{padding:5px 10px; font-size:12px}
+.maptools .hint{color:var(--mut); font-size:12px; margin-left:auto}
+#map{height:62vh; min-height:340px; width:100%; background:var(--chip)}
+.legend{display:flex; gap:16px; padding:8px 12px 10px; font-size:11.5px; color:var(--mut); flex-wrap:wrap}
+.legend span{display:inline-flex; align-items:center; gap:6px}
+.k{width:12px; height:12px; border-radius:50%; flex:0 0 auto}
+.k.un{background:var(--panel); border:2px solid var(--ink)}
+.k.vis{background:var(--red)}
+.k.op{border:2.5px solid var(--green); background:transparent}
+.k.me{background:#2b7de1; border:2px solid #fff; box-shadow:0 0 0 1.5px #2b7de1}
+
+.pubpin{display:grid; place-items:center; width:30px; height:30px; border-radius:50%;
+  background:#fbfaf5; border:2.5px solid #1d2127; color:#1d2127;
+  font-family:var(--font-mono); font-size:12px; font-weight:600; box-shadow:0 1px 4px rgba(0,0,0,.35)}
+.pubpin.visited{background:#dc241f; border-color:#dc241f; color:#fff}
+.pubpin.openN{box-shadow:0 0 0 3px rgba(42,122,68,.85), 0 1px 4px rgba(0,0,0,.35)}
+.medot{width:16px; height:16px; border-radius:50%; background:#2b7de1; border:2.5px solid #fff; box-shadow:0 0 0 2px #2b7de1}
+.leaflet-popup-content{font-family:var(--font-ui); font-size:13.5px; margin:10px 14px}
+.leaflet-popup-content b{font-size:14.5px}
+.pp-status{font-weight:700}
+.pp-status.open{color:#2a7a44}
+.pp-status.soon{color:#a86f0e}
+.pp-status.closed{color:#656e76}
+.pp-go{font-weight:700; color:#2b5fab; text-decoration:none}
+
+.now{margin-top:14px; background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:12px 14px}
+.now .bh{font-size:11px; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--mut); margin-bottom:6px}
+.now .rows{display:flex; flex-direction:column; gap:7px}
+.now .r{display:flex; align-items:baseline; gap:10px; font-size:14.5px; flex-wrap:wrap}
+.now .r b{font-weight:700}
+.now .dist{font-family:var(--font-mono); font-size:12px; color:var(--mut); font-variant-numeric:tabular-nums}
+.now .none{color:var(--mut); font-size:13.5px}
+
+.clusters{margin-top:18px; display:flex; flex-direction:column; gap:20px}
+.cluster .ch{display:flex; align-items:baseline; gap:10px; margin-bottom:8px}
+.cluster .ch h2{font-size:13px; font-weight:800; letter-spacing:.09em; text-transform:uppercase}
+.cluster .ch .cn{color:var(--mut); font-size:12px; font-family:var(--font-mono)}
+.cluster .ch .tip{color:var(--mut); font-size:12px; margin-left:auto; text-align:right}
+.pub{background:var(--panel); border:1px solid var(--line); border-radius:10px; margin-bottom:8px; overflow:hidden}
+.pubrow{display:flex; align-items:center; gap:12px; width:100%; background:none; border:0; text-align:left; padding:11px 13px}
+.num{flex:0 0 26px; width:26px; height:26px; border-radius:50%; border:2px solid var(--ink);
+  display:grid; place-items:center; font-family:var(--font-mono); font-size:11.5px; font-weight:600; background:var(--panel)}
+.pub.visited .num{background:var(--red); border-color:var(--red); color:var(--red-ink)}
+.pmain{flex:1 1 auto; min-width:0}
+.pname{font-weight:700; font-size:15.5px}
+.pmeta{color:var(--mut); font-size:12.5px; display:flex; gap:8px; flex-wrap:wrap}
+.pright{flex:0 0 auto; text-align:right; display:flex; flex-direction:column; align-items:flex-end; gap:3px}
+.status{font-size:11.5px; font-weight:700; letter-spacing:.03em; padding:2.5px 8px; border-radius:99px; white-space:nowrap}
+.status.open{color:var(--green); border:1.5px solid var(--green)}
+.status.soon{color:var(--amber); border:1.5px solid var(--amber)}
+.status.closed{color:var(--mut); border:1.5px solid var(--line)}
+.pdist{font-family:var(--font-mono); font-size:11px; color:var(--mut); font-variant-numeric:tabular-nums}
+.detail{border-top:1px dashed var(--line); padding:12px 14px; display:flex; flex-direction:column; gap:12px}
+.detail .blurb{font-size:14px}
+.detail .intel{font-size:13px; color:var(--mut)}
+.factline{display:flex; gap:14px; flex-wrap:wrap; font-size:12.5px; color:var(--mut)}
+.factline a{color:var(--focus); font-weight:600; text-decoration:none}
+.hours{display:grid; grid-template-columns:auto 1fr; gap:2px 14px; font-family:var(--font-mono); font-size:12px; color:var(--mut); font-variant-numeric:tabular-nums}
+.hours .today{color:var(--ink); font-weight:600}
+.hnote{font-size:11px; color:var(--mut)}
+.actions{display:flex; gap:8px; flex-wrap:wrap; align-items:center}
+.btn:disabled{opacity:.5; cursor:default}
+.vdate{font-size:12px; color:var(--mut); font-family:var(--font-mono)}
+.localflag{font-size:11px; color:var(--amber); font-weight:600}
+.notebox{display:flex; flex-direction:column; gap:6px}
+.notebox label{font-size:11px; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:var(--mut)}
+.notebox textarea{
+  font:inherit; font-size:13.5px; background:var(--bg); color:var(--ink);
+  border:1px solid var(--line); border-radius:7px; padding:8px 10px; resize:vertical; min-height:44px;
+}
+.notebox .nrow{display:flex; gap:8px; align-items:center}
+.savedflash{font-size:12px; color:var(--green); font-weight:600}
+footer{margin-top:26px; color:var(--mut); font-size:12px; line-height:1.6}
+@media (max-width:460px){
+  .clockbox{order:3; margin-left:auto}
+  .maptools .hint{flex-basis:100%; margin-left:0}
+  #map{height:52vh}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="roundel" aria-hidden="true">
+    <svg viewBox="0 0 58 58">
+      <circle cx="29" cy="29" r="22" fill="none" stroke="var(--red)" stroke-width="8"></circle>
+      <rect x="2" y="24" width="54" height="10" rx="2" fill="var(--red)"></rect>
+      <text id="roundelCount" x="29" y="32.5" text-anchor="middle" fill="var(--red-ink)"
+        style="font-family:var(--font-mono);font-size:9px;font-weight:600">–/–</text>
+    </svg>
+  </div>
+  <div class="masthead">
+    <h1>London Pub Ledger</h1>
+    <div class="sub" id="subTitle">The iconic pubs · running since July 2026</div>
+  </div>
+  <div class="clockbox">
+    <div class="t" id="clock">–:–:–</div>
+    <div class="d" id="clockDate">London time</div>
+  </div>
+</header>
+
+<div class="scorebar">
+  <span>Ticked off</span>
+  <span class="count" id="scoreCount">–</span>
+  <span class="syncchip" id="syncChip">loading…</span>
+</div>
+
+<section class="board" id="board" hidden>
+  <div class="bh">From the running thread</div>
+  <ul id="boardList"></ul>
+</section>
+
+<section class="mapwrap" aria-label="Pub map">
+  <div class="maptools">
+    <button class="btn small primary" id="locBtn">📍 Find me</button>
+    <button class="btn small" id="fitBtn">Fit all pubs</button>
+    <div class="hint" id="locHint">Location stays on your phone — never uploaded.</div>
+  </div>
+  <div id="map"></div>
+  <div class="legend">
+    <span><span class="k un"></span> to do</span>
+    <span><span class="k vis"></span> ticked off</span>
+    <span><span class="k op"></span> open right now</span>
+    <span><span class="k me"></span> you</span>
+  </div>
+</section>
+
+<section class="now">
+  <div class="bh" id="nowHead">Open right now</div>
+  <div class="rows" id="nowRows"><div class="none">Working it out…</div></div>
+</section>
+
+<div class="clusters" id="clusters"></div>
+
+<footer>
+  Hours shown are the typical pattern — the ↗ link in each pub checks the live listing before you commit to a journey.
+  The City cluster keeps office hours and part-shuts at weekends.
+  Ticks made here are saved on this phone and flagged until you tell Claude in the running thread, which updates the ledger for every device.
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+"use strict";
+
+const PUBS = [
+ {id:"cheshire-cheese", n:1, name:"Ye Olde Cheshire Cheese", cluster:"City / Fleet St / Holborn",
+  lat:51.5143, lon:-0.1070, station:"Blackfriars",
+  hrs:[[12,18],[12,23],[12,23],[12,23],[12,23],[12,23],[12,23]],
+  blurb:"Rebuilt 1667 straight after the Great Fire; Dickens, Twain and Conan Doyle all drank here. The cellars predate the pub.",
+  intel:"Go down, not up — the vaults are the point. Sunday hours are famously unreliable; verify.", q:"Ye Olde Cheshire Cheese Fleet Street London"},
+ {id:"mitre", n:2, name:"Ye Olde Mitre", cluster:"City / Fleet St / Holborn",
+  lat:51.5186, lon:-0.1077, station:"Chancery Lane / Farringdon",
+  hrs:[null,[11,23],[11,23],[11,23],[11,23],[11,23],[11.5,21]],
+  blurb:"1546, hidden down Ely Court off Hatton Garden — for centuries technically part of Cambridgeshire, not London.",
+  intel:"Weekday pub: shut Sundays, early close Saturday. Look for the alley, not the pub. Highest-rated on the whole list.", q:"Ye Olde Mitre Ely Court London"},
+ {id:"blackfriar", n:3, name:"The Blackfriar", cluster:"City / Fleet St / Holborn",
+  lat:51.5121, lon:-0.1036, station:"Blackfriars",
+  hrs:[[11,22.5],[11,23],[11,23],[11,23],[11,23],[11,23],[11,23]],
+  blurb:"The only Art Nouveau pub interior in London — marble, bronze friars, mosaic ceilings. Betjeman helped save it from demolition.",
+  intel:"The back grotto room is the showpiece; worth waiting for a spot.", q:"The Blackfriar pub London"},
+ {id:"seven-stars", n:4, name:"The Seven Stars", cluster:"City / Fleet St / Holborn",
+  lat:51.5152, lon:-0.1133, station:"Temple / Holborn",
+  hrs:[[12,22],[11,23],[11,23],[11,23],[11,23],[11,23],[11,23]],
+  blurb:"1602, survived the Great Fire, tucked behind the Royal Courts of Justice — the barristers' local for four centuries.",
+  intel:"Tiny, with a resident cat in a ruff if you're lucky. Food is proper.", q:"The Seven Stars Carey Street London"},
+ {id:"butlers-head", n:5, name:"Old Doctor Butler's Head", cluster:"City / Fleet St / Holborn",
+  lat:51.5157, lon:-0.0906, station:"Moorgate / Bank",
+  hrs:[null,[11,23],[11,23],[11,23],[11,23],[11,23],null],
+  blurb:"Founded 1610 by Dr William Butler, court physician and medicinal-ale quack; rebuilt after the Fire, still down its alley.",
+  intel:"Strictly a weekday pub — shut all weekend, like most of the deep City.", q:"Old Doctor Butler's Head Mason's Avenue London"},
+ {id:"hoop-grapes", n:6, name:"The Hoop and Grapes", cluster:"City / Fleet St / Holborn",
+  lat:51.5138, lon:-0.0765, station:"Aldgate",
+  hrs:[null,[11,23],[11,23],[11,23],[11,23],[11,23],[12,20]],
+  blurb:"One of the only timber-framed buildings to survive the Great Fire — the flames stopped about 50 yards away. Late 1500s.",
+  intel:"Noticeably crooked doorframe; that's original. Weekend hours thin — verify.", q:"The Hoop and Grapes Aldgate High Street London"},
+ {id:"jamaica", n:7, name:"Jamaica Wine House", cluster:"City / Fleet St / Holborn",
+  lat:51.5130, lon:-0.0857, station:"Bank / Monument",
+  hrs:[null,[11,23],[11,23],[11,23],[11,23],[11,23],null],
+  blurb:"Site of London's first coffee house (Pasqua Rosée, 1652), where the City invented doing deals over a cup. 'The Jampot' to locals.",
+  intel:"Buried in the St Michael's Alley maze — follow the signs from Cornhill. Weekdays only.", q:"Jamaica Wine House St Michael's Alley London"},
+ {id:"cittie-of-yorke", n:8, name:"Cittie of Yorke", cluster:"City / Fleet St / Holborn",
+  lat:51.5179, lon:-0.1120, station:"Chancery Lane / Holborn",
+  hrs:[null,[11.5,23],[11.5,23],[11.5,23],[11.5,23],[11.5,23],[11.5,23]],
+  blurb:"A pub on this High Holborn site since 1430; the 1920s rebuild is a Gothic great hall — triple-height ceiling, thousand-gallon vats above the bar, Victorian snug booths.",
+  intel:"Sam Smith's, so pints are cheap. Shut Sundays like its City neighbours; two minutes from the Mitre.", q:"Cittie of Yorke High Holborn London"},
+ {id:"lamb-flag", n:9, name:"Lamb & Flag", cluster:"Covent Garden / Soho",
+  lat:51.5115, lon:-0.1266, station:"Covent Garden / Leicester Sq",
+  hrs:[[12,22.5],[11,23],[11,23],[11,23],[11,23],[11,23],[11,23]],
+  blurb:"1772 on Rose Street, once nicknamed the Bucket of Blood for its bare-knuckle fights; Dryden was beaten up in the alley outside.",
+  intel:"Drinkers spill into the alley — that's the move on a dry evening.", q:"Lamb and Flag Rose Street Covent Garden London"},
+ {id:"french-house", n:10, name:"The French House", cluster:"Covent Garden / Soho",
+  lat:51.5131, lon:-0.1313, station:"Leicester Sq / Tottenham Ct Rd",
+  hrs:[[12,22.5],[12,23],[12,23],[12,23],[12,23],[12,23],[12,23]],
+  blurb:"De Gaulle's Free French drank here in WWII; Bacon and Behan after. Half-pints only, no phones, no music — house rules since forever.",
+  intel:"Order a half and put the phone away or get told off. Both are part of the experience.", q:"The French House Dean Street Soho London"},
+ {id:"harp", n:11, name:"The Harp", cluster:"Covent Garden / Soho",
+  lat:51.5097, lon:-0.1263, station:"Charing Cross / Leicester Sq",
+  hrs:[[12,22.5],[11.5,23],[11.5,23],[11.5,23],[11.5,23],[11.5,23],[11.5,23]],
+  blurb:"The cask-ale pilgrimage site — former CAMRA national Pub of the Year, a sliver of a room behind a stained-glass front.",
+  intel:"One narrow bar; go off-peak or stand outside like everyone else. The one your London ICs respect.", q:"The Harp Chandos Place London"},
+ {id:"grenadier", n:12, name:"The Grenadier", cluster:"Belgravia",
+  lat:51.5013, lon:-0.1555, station:"Hyde Park Corner",
+  hrs:[[12,22.5],[12,23],[12,23],[12,23],[12,23],[12,23],[12,23]],
+  blurb:"Tiny former officers' mess in a Wilton Row mews, famously haunted by a flogged subaltern; the ceiling is papered in banknotes for his debt.",
+  intel:"Ticked 25 Jul — the money ceiling and the sentry box.", q:"The Grenadier Wilton Row Belgravia London"},
+ {id:"nags-head", n:13, name:"The Nag's Head", cluster:"Belgravia",
+  lat:51.5020, lon:-0.1562, station:"Knightsbridge / Hyde Park Corner",
+  hrs:[[12,22.5],[11,23],[11,23],[11,23],[11,23],[11,23],[11,23]],
+  blurb:"Kinnerton Street's frozen-in-1950 eccentric: sunken bar, strict no-phones rule, every surface covered in curios.",
+  intel:"Ticked 25 Jul — same outing as the Grenadier, two minutes apart.", q:"The Nags Head Kinnerton Street Belgravia London"},
+ {id:"george-inn", n:14, name:"The George Inn", cluster:"Borough",
+  lat:51.5043, lon:-0.0901, station:"London Bridge / Borough",
+  hrs:[[12,22.5],[11,23],[11,23],[11,23],[11,23],[11,23],[11,23]],
+  blurb:"London's last galleried coaching inn (1677), owned by the National Trust; Dickens drank here and put it in Little Dorrit.",
+  intel:"Big courtyard — the most kid-compatible pub on the list. Pairs with Borough Market, 3 min away.", q:"The George Inn Borough High Street London"},
+ {id:"mayflower", n:15, name:"The Mayflower", cluster:"East riverside",
+  lat:51.5016, lon:-0.0537, station:"Rotherhithe → CJ direct",
+  hrs:[[12,22],[11.5,23],[11.5,23],[11.5,23],[11.5,23],[11.5,23],[11.5,23]],
+  blurb:"On the Pilgrim ship's actual 1620 mooring; Captain Jones is buried at St Mary's behind it. Deck hangs over the Thames.",
+  intel:"Ticked 26 Jul — the voyage to religious freedom began at a pub.", q:"The Mayflower pub Rotherhithe Street London"},
+ {id:"prospect", n:16, name:"Prospect of Whitby", cluster:"East riverside",
+  lat:51.5074, lon:-0.0542, station:"Wapping → CJ direct",
+  hrs:[[12,22.5],[12,23],[12,23],[12,23],[12,23],[12,23],[12,23]],
+  blurb:"London's oldest riverside tavern (1520), once the Devil's Tavern for its smuggler clientele; pewter bar on barrels, noose out back for Execution Dock.",
+  intel:"Ticked 26 Jul — back terrace, half a pint, Windrush line home.", q:"Prospect of Whitby Wapping Wall London"},
+ {id:"grapes", n:17, name:"The Grapes", cluster:"East riverside",
+  lat:51.5089, lon:-0.0333, station:"Limehouse DLR / Westferry",
+  hrs:[[12,22.5],[12,23],[12,23],[12,23],[12,23],[12,23],[12,23]],
+  blurb:"A pub on this Limehouse site since 1583; opens Our Mutual Friend barely disguised. Co-owned by Ian McKellen — Gandalf's staff is behind the bar.",
+  intel:"Tiny riverside deck. Pairs with a Docklands or Greenwich run, not a central crawl.", q:"The Grapes Narrow Street Limehouse London"},
+ {id:"trafalgar", n:18, name:"Trafalgar Tavern", cluster:"Greenwich",
+  lat:51.4840, lon:-0.0047, station:"Cutty Sark DLR / Maze Hill",
+  hrs:[[11.5,22.5],[11.5,23],[11.5,23],[11.5,23],[11.5,23],[11.5,23],[11.5,23]],
+  blurb:"1837 riverside grandeur beside the Old Royal Naval College; Victorian cabinet ministers came downriver for its whitebait dinners.",
+  intel:"Anchor of the RB1 riverboat day — boat from Battersea PS Pier, bikes travel free.", q:"Trafalgar Tavern Park Row Greenwich"},
+ {id:"spaniards", n:19, name:"The Spaniards Inn", cluster:"North / Hampstead–Highgate",
+  lat:51.5712, lon:-0.1778, station:"Hampstead + 210 bus",
+  hrs:[[11,22.5],[11,23],[11,23],[11,23],[11,23],[11,23],[11,23]],
+  blurb:"1585 on the edge of the Heath; Dick Turpin lore, and it appears in both Dracula and The Pickwick Papers.",
+  intel:"The Heath-day pub: ponds, Parliament Hill, then this or The Flask. Garden is huge.", q:"The Spaniards Inn Hampstead London"},
+ {id:"flask", n:20, name:"The Flask (Highgate)", cluster:"North / Hampstead–Highgate",
+  lat:51.5699, lon:-0.1495, station:"Highgate / Archway",
+  hrs:[[11,22.5],[11,23],[11,23],[11,23],[11,23],[11,23],[11,23]],
+  blurb:"1663 Highgate village institution — committee rooms, snug boxes, and a resident-ghost story per room.",
+  intel:"Nearest list pub to the swimming ponds. Village around it is worth the wander.", q:"The Flask Highgate West Hill London"},
+ {id:"churchill", n:21, name:"The Churchill Arms", cluster:"West",
+  lat:51.5075, lon:-0.1940, station:"Notting Hill Gate",
+  hrs:[[12,22.5],[11,23],[11,23],[11,23],[11,23],[11,23],[11,23]],
+  blurb:"The flower-drowned one on Kensington Church Street — 100+ hanging baskets — with a genuinely good Thai kitchen in the conservatory.",
+  intel:"Attach to a Kensington / Notting Hill outing. Always busy; the flowers are the photo, the Thai is the reason to stay.", q:"The Churchill Arms Kensington Church Street London"},
+ {id:"dove", n:22, name:"The Dove", cluster:"West",
+  lat:51.4906, lon:-0.2345, station:"Ravenscourt Park / Hammersmith",
+  hrs:[[12,22.5],[11.5,23],[11.5,23],[11.5,23],[11.5,23],[11.5,23],[11.5,23]],
+  blurb:"Hammersmith riverside, holds the record for Britain's smallest bar room (4'2\" × 7'10\"); Rule, Britannia! was reputedly written upstairs.",
+  intel:"Needs a deliberate trip — best as a Thames Path walk from Hammersmith Bridge.", q:"The Dove Upper Mall Hammersmith London"}
+];
+
+const DAY = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+const CLUSTER_TIPS = {
+ "City / Fleet St / Holborn":"Weekday play — half shut at weekends",
+ "Covent Garden / Soho":"Pre-theatre territory",
+ "Belgravia":"Done 25 Jul",
+ "Borough":"Pairs with the market + South Bank walk",
+ "East riverside":"Windrush line home to CJ",
+ "Greenwich":"Build the riverboat day around it",
+ "North / Hampstead–Highgate":"The Heath day",
+ "West":"The stragglers — each needs a reason"
+};
+const HOME = {name:"Clapham Junction", lat:51.4645, lon:-0.1705};
+
+/* ---------- time (always Europe/London) ---------- */
+const fmtClock = new Intl.DateTimeFormat("en-GB",{timeZone:"Europe/London",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false});
+const fmtDate  = new Intl.DateTimeFormat("en-GB",{timeZone:"Europe/London",weekday:"short",day:"numeric",month:"short"});
+const fmtParts = new Intl.DateTimeFormat("en-GB",{timeZone:"Europe/London",weekday:"short",hour:"2-digit",minute:"2-digit",hour12:false});
+const fmtISO   = new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/London",year:"numeric",month:"2-digit",day:"2-digit"});
+function londonNow(){
+  const parts = fmtParts.formatToParts(new Date());
+  const get = t => parts.find(p=>p.type===t)?.value;
+  const dow = DAY.findIndex(d => get("weekday")?.startsWith(d));
+  return { dow: dow<0?0:dow, mins: parseInt(get("hour"),10)*60 + parseInt(get("minute"),10) };
+}
+function hhmm(h){ const H=Math.floor(h), M=Math.round((h-H)*60); return String(H).padStart(2,"0")+":"+String(M).padStart(2,"0"); }
+function statusFor(p, t){
+  const today = p.hrs[t.dow];
+  if(!today){
+    const shutDays = p.hrs.map((h,i)=>h?null:DAY[i]).filter(Boolean);
+    return {cls:"closed", label: shutDays.length>1 ? "Shut "+shutDays.join(" & ") : "Closed today", open:false};
+  }
+  const [o,c]=today, om=o*60, cm=c*60;
+  if(t.mins < om) return {cls:"closed", label:"Opens "+hhmm(o), open:false};
+  if(t.mins >= cm) return {cls:"closed", label:"Closed · was til "+hhmm(c), open:false};
+  if(cm - t.mins <= 60) return {cls:"soon", label:"Last orders soon · "+hhmm(c), open:true};
+  return {cls:"open", label:"Open · til "+hhmm(c), open:true};
+}
+function haversineKm(a,b){
+  const R=6371, dLat=(b[0]-a[0])*Math.PI/180, dLon=(b[1]-a[1])*Math.PI/180;
+  const s = Math.sin(dLat/2)**2 + Math.cos(a[0]*Math.PI/180)*Math.cos(b[0]*Math.PI/180)*Math.sin(dLon/2)**2;
+  return 2*R*Math.asin(Math.sqrt(s));
+}
+function walkTxt(km){ return km<1 ? Math.round(km*1000)+" m · ~"+Math.max(1,Math.round(km*12))+" min walk" : km.toFixed(1)+" km · ~"+Math.round(km*12)+" min walk"; }
+
+/* ---------- state ---------- */
+const state = {
+  base: {},            // from data.json: id -> {visited,date,note}
+  overrides: {},       // local ticks not yet synced via chat
+  board: [],
+  me: null,            // [lat,lon] from GPS
+  openDetail: null,
+  markers: {}
+};
+PUBS.forEach(p => state.base[p.id] = {visited:false, date:null, note:""});
+function lsGet(k){ try{ return JSON.parse(localStorage.getItem(k)); }catch(e){ return null; } }
+function lsSet(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+state.overrides = lsGet("ledger-overrides") || {};
+function eff(id){ return state.overrides[id] || state.base[id]; }
+function isLocal(id){ return !!state.overrides[id]; }
+
+/* ---------- DOM helpers ---------- */
+const $ = s => document.querySelector(s);
+function el(tag, attrs, ...kids){
+  const e = document.createElement(tag);
+  for(const k in (attrs||{})){
+    if(k==="class") e.className = attrs[k];
+    else if(k.startsWith("on")) e.addEventListener(k.slice(2), attrs[k]);
+    else e.setAttribute(k, attrs[k]);
+  }
+  kids.flat().forEach(k => { if(k!=null) e.append(k.nodeType? k : document.createTextNode(k)); });
+  return e;
+}
+
+/* ---------- map ---------- */
+const dark = matchMedia("(prefers-color-scheme: dark)").matches;
+const map = L.map("map", {zoomControl:true});
+L.tileLayer(dark
+  ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+  : "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
+ {attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+  subdomains:"abcd", maxZoom:19}).addTo(map);
+const allBounds = L.latLngBounds(PUBS.map(p=>[p.lat,p.lon]));
+map.fitBounds(allBounds, {padding:[28,28]});
+L.marker([HOME.lat,HOME.lon],{icon:L.divIcon({className:"", html:'<div style="font-size:11px;font-weight:700;color:#656e76;text-shadow:0 0 3px var(--bg),0 0 3px var(--bg)">◇ CJ</div>', iconSize:[40,16], iconAnchor:[8,8]}), interactive:false}).addTo(map);
+
+function pinFor(p){
+  const d = eff(p.id), t = londonNow(), st = statusFor(p,t);
+  const cls = "pubpin"+(d.visited?" visited":"")+(!d.visited&&st.open?" openN":"");
+  return L.divIcon({className:"", html:`<div class="${cls}">${p.n}</div>`, iconSize:[30,30], iconAnchor:[15,15], popupAnchor:[0,-16]});
+}
+function popupFor(p){
+  const d = eff(p.id), t = londonNow(), st = statusFor(p,t);
+  const dist = state.me ? "<br>"+walkTxt(haversineKm(state.me,[p.lat,p.lon]))+" from you" : "";
+  const gmaps = state.me
+    ? `https://www.google.com/maps/dir/?api=1&origin=${state.me[0]},${state.me[1]}&destination=${encodeURIComponent(p.q)}&travelmode=walking`
+    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.q)}`;
+  return `<b>${p.n}. ${p.name}</b><br>`+
+    `<span class="pp-status ${st.cls}">${d.visited ? "✓ ticked "+(d.date||"") : st.label}</span>${dist}<br>`+
+    `<a class="pp-go" href="${gmaps}" target="_blank" rel="noopener">Directions ↗</a> · `+
+    `<a class="pp-go" href="#" onclick="openPub('${p.id}');return false;">Details ↓</a>`;
+}
+PUBS.forEach(p=>{
+  const m = L.marker([p.lat,p.lon], {icon:pinFor(p)}).addTo(map);
+  m.bindPopup(()=>popupFor(p));
+  state.markers[p.id]=m;
+});
+function refreshPins(){ PUBS.forEach(p=> state.markers[p.id].setIcon(pinFor(p))); }
+$("#fitBtn").addEventListener("click",()=> map.fitBounds(allBounds,{padding:[28,28]}));
+
+/* GPS */
+let meMarker=null, meRing=null, watching=false;
+$("#locBtn").addEventListener("click",()=>{
+  if(!navigator.geolocation){ $("#locHint").textContent="This browser has no location support."; return; }
+  if(watching && state.me){ map.setView(state.me, Math.max(map.getZoom(),15)); return; }
+  $("#locHint").textContent="Locating…";
+  navigator.geolocation.watchPosition(pos=>{
+    const first = !state.me;
+    state.me = [pos.coords.latitude, pos.coords.longitude];
+    watching = true;
+    if(!meMarker){
+      meMarker = L.marker(state.me,{icon:L.divIcon({className:"", html:'<div class="medot"></div>', iconSize:[16,16], iconAnchor:[8,8]}), interactive:false}).addTo(map);
+      meRing = L.circle(state.me,{radius:pos.coords.accuracy||30, color:"#2b7de1", weight:1, fillOpacity:.08}).addTo(map);
+    } else { meMarker.setLatLng(state.me); meRing.setLatLng(state.me).setRadius(pos.coords.accuracy||30); }
+    if(first) map.setView(state.me, 15);
+    const inLondon = haversineKm(state.me,[51.5074,-0.1278]) < 60;
+    $("#locHint").textContent = inLondon ? "Live — sorted by distance." : "Live (you're not in London — distances hidden).";
+    if(!inLondon) state.me = null;
+    renderNow(); renderList(false);
+  }, err=>{
+    $("#locHint").textContent = err.code===1 ? "Location declined — tap a pin instead." : "No fix — try again outside.";
+  }, {enableHighAccuracy:true, maximumAge:15000, timeout:20000});
+});
+
+/* ---------- now strip ---------- */
+function renderNow(){
+  const t = londonNow();
+  const rows = $("#nowRows"); rows.innerHTML="";
+  const open = PUBS.filter(p=>!eff(p.id).visited && statusFor(p,t).open);
+  if(!state.me){
+    $("#nowHead").textContent = "Open right now";
+    rows.append(el("div",{class:"none"},
+      open.length ? open.length+" of the remaining pubs are pouring right now (London time). Tap “Find me” to sort by distance."
+                  : "None of the remaining pubs are open right now — the City cluster keeps office hours."));
+    return;
+  }
+  $("#nowHead").textContent = "Nearest open · live";
+  if(!open.length){ rows.append(el("div",{class:"none"},"Nothing on the remaining list is open right now.")); return; }
+  open.map(p=>({p, km:haversineKm(state.me,[p.lat,p.lon])}))
+    .sort((a,b)=>a.km-b.km).slice(0,3)
+    .forEach(({p,km})=>{
+      const st = statusFor(p,t);
+      rows.append(el("div",{class:"r"},
+        el("b",{onclick:()=>openPub(p.id), style:"cursor:pointer"}, p.n+". "+p.name),
+        el("span",{class:"dist"}, walkTxt(km)),
+        el("span",{class:"status "+st.cls}, st.label)));
+    });
+}
+
+/* ---------- list ---------- */
+const clustersEl = $("#clusters");
+function cssId(s){ return s.replace(/[^a-z0-9]+/gi,"-").toLowerCase(); }
+function renderList(rebuild=true){
+  const t = londonNow();
+  if(rebuild){
+    clustersEl.innerHTML="";
+    const order=[]; const byC={};
+    PUBS.forEach(p=>{ if(!byC[p.cluster]){byC[p.cluster]=[]; order.push(p.cluster);} byC[p.cluster].push(p); });
+    order.forEach(c=>{
+      const done = byC[c].filter(p=>eff(p.id).visited).length;
+      const sec = el("section",{class:"cluster"},
+        el("div",{class:"ch"},
+          el("h2",{}, c),
+          el("span",{class:"cn", id:"cn-"+cssId(c)}, done+"/"+byC[c].length),
+          el("span",{class:"tip"}, CLUSTER_TIPS[c]||"")),
+        ...byC[c].map(p=>pubCard(p,t)));
+      clustersEl.append(sec);
+    });
+  } else {
+    PUBS.forEach(p=>updatePubCard(p,t));
+    const byC={}; PUBS.forEach(p=>{ (byC[p.cluster]=byC[p.cluster]||[]).push(p); });
+    for(const c in byC){
+      const n=$("#cn-"+cssId(c)); if(n) n.textContent = byC[c].filter(p=>eff(p.id).visited).length+"/"+byC[c].length;
+    }
+  }
+  renderScore();
+}
+function pubCard(p,t){
+  const d = eff(p.id), st = statusFor(p,t);
+  const card = el("div",{class:"pub"+(d.visited?" visited":""), id:"pub-"+p.id});
+  const km = state.me ? haversineKm(state.me,[p.lat,p.lon]) : null;
+  card.append(el("button",{class:"pubrow", "aria-expanded":"false", onclick:()=>toggleDetail(p.id)},
+    el("span",{class:"num"}, String(p.n)),
+    el("span",{class:"pmain"},
+      el("div",{class:"pname"}, p.name),
+      el("div",{class:"pmeta"},
+        el("span",{}, p.station),
+        d.note ? el("span",{}, "✎ noted") : null,
+        isLocal(p.id) ? el("span",{class:"localflag"},"local — tell Claude") : null)),
+    el("span",{class:"pright"},
+      el("span",{class:"status "+(d.visited?"open":st.cls), id:"st-"+p.id}, d.visited ? "✓ "+(d.date||"done") : st.label),
+      el("span",{class:"pdist", id:"dist-"+p.id}, km!=null ? walkTxt(km) : ""))));
+  return card;
+}
+function updatePubCard(p,t){
+  const card = $("#pub-"+p.id); if(!card) return;
+  const d = eff(p.id), st = statusFor(p,t);
+  card.classList.toggle("visited", !!d.visited);
+  const stEl = $("#st-"+p.id);
+  stEl.className = "status " + (d.visited? "open" : st.cls);
+  stEl.textContent = d.visited ? "✓ "+(d.date||"done") : st.label;
+  $("#dist-"+p.id).textContent = state.me ? walkTxt(haversineKm(state.me,[p.lat,p.lon])) : "";
+  const meta = card.querySelector(".pmeta");
+  if(meta){
+    meta.innerHTML="";
+    meta.append(el("span",{},p.station));
+    if(d.note) meta.append(el("span",{},"✎ noted"));
+    if(isLocal(p.id)) meta.append(el("span",{class:"localflag"},"local — tell Claude"));
+  }
+}
+function toggleDetail(id){
+  const card = $("#pub-"+id);
+  const existing = card.querySelector(".detail");
+  if(existing){ existing.remove(); card.querySelector(".pubrow").setAttribute("aria-expanded","false"); state.openDetail=null; return; }
+  document.querySelectorAll(".detail").forEach(e=>{ const c=e.closest(".pub"); e.remove(); c?.querySelector(".pubrow")?.setAttribute("aria-expanded","false"); });
+  card.append(detailFor(id));
+  card.querySelector(".pubrow").setAttribute("aria-expanded","true");
+  state.openDetail = id;
+}
+function openPub(id){
+  map.closePopup();
+  const card = $("#pub-"+id);
+  if(card){ card.scrollIntoView({behavior:"smooth", block:"center"}); if(!card.querySelector(".detail")) toggleDetail(id); }
+}
+window.openPub = openPub;
+function detailFor(id){
+  const p = PUBS.find(x=>x.id===id), d = eff(id), t = londonNow();
+  const hours = el("div",{class:"hours"});
+  for(let i=1;i<=7;i++){
+    const dow=i%7, h=p.hrs[dow];
+    const cls = dow===t.dow ? "today":"";
+    hours.append(el("span",{class:cls}, DAY[dow]), el("span",{class:cls}, h? hhmm(h[0])+"–"+hhmm(h[1]) : "closed"));
+  }
+  const ta = el("textarea",{id:"note-"+id, placeholder:"Note to self — what to order, who to bring, what the barman said…"});
+  ta.value = d.note||"";
+  const saveBtn = el("button",{class:"btn", onclick:()=>{
+    setOverride(id, {...eff(id), note: ta.value.trim()});
+    flash(saveBtn.parentElement, "Saved on this phone");
+  }},"Save note");
+  const tickBtn = el("button",{class:"btn primary", onclick:()=>{
+    const now = !d.visited;
+    setOverride(id, {visited:now, date: now? fmtISO.format(new Date()) : null, note: ta.value.trim()});
+  }}, d.visited ? "Un-tick" : "Tick it off");
+  const gmaps = state.me
+    ? `https://www.google.com/maps/dir/?api=1&origin=${state.me[0]},${state.me[1]}&destination=${encodeURIComponent(p.q)}&travelmode=walking`
+    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.q)}`;
+  return el("div",{class:"detail"},
+    el("div",{class:"blurb"}, p.blurb),
+    el("div",{class:"intel"}, p.intel),
+    el("div",{class:"factline"},
+      el("span",{}, "Nearest: "+p.station),
+      el("a",{href:gmaps, target:"_blank", rel:"noopener"},"Live hours & directions ↗")),
+    hours,
+    el("div",{class:"hnote"},"Typical pattern — confirm before a special journey."),
+    el("div",{class:"actions"},
+      tickBtn,
+      d.visited? el("span",{class:"vdate"},"ticked "+(d.date||"")) : null,
+      isLocal(id)? el("span",{class:"localflag"},"saved locally — mention it in the thread to sync") : null),
+    el("div",{class:"notebox"},
+      el("label",{for:"note-"+id},"Field note"),
+      ta,
+      el("div",{class:"nrow"}, saveBtn)));
+}
+function setOverride(id, body){
+  const b = state.base[id];
+  if(b && b.visited===body.visited && (b.date||null)===(body.date||null) && (b.note||"")===(body.note||"")){
+    delete state.overrides[id];   // matches the thread again — no flag needed
+  } else {
+    state.overrides[id] = body;
+  }
+  lsSet("ledger-overrides", state.overrides);
+  renderList(false); renderNow(); refreshPins();
+  const card=$("#pub-"+id);
+  if(card && card.querySelector(".detail")){ card.querySelector(".detail").remove(); card.append(detailFor(id)); }
+}
+function flash(parent, msg){
+  const f = el("span",{class:"savedflash"}, msg);
+  parent.append(f); setTimeout(()=>f.remove(), 2200);
+}
+
+/* ---------- score / clock / board ---------- */
+function renderScore(){
+  const done = PUBS.filter(p=>eff(p.id).visited).length;
+  $("#scoreCount").textContent = done+" of "+PUBS.length;
+  $("#roundelCount").textContent = done+"/"+PUBS.length;
+  $("#subTitle").textContent = "The iconic "+PUBS.length+" · running since July 2026";
+  const n = Object.keys(state.overrides).length;
+  $("#syncChip").textContent = n ? n+" local change"+(n>1?"s":"")+" — tell Claude" : "in sync with the thread";
+}
+function renderBoard(){
+  const b = $("#board"), ul=$("#boardList");
+  b.hidden = !state.board.length;
+  ul.innerHTML="";
+  state.board.slice(0,6).forEach(it=>{
+    ul.append(el("li",{}, el("span",{class:"ts"}, it.ts||""), el("span",{class:"tx"}, it.text||"")));
+  });
+}
+function tick(){
+  $("#clock").textContent = fmtClock.format(new Date());
+  $("#clockDate").textContent = fmtDate.format(new Date())+" · London";
+}
+tick(); setInterval(tick, 1000);
+let lastMin = londonNow().mins;
+setInterval(()=>{ const m=londonNow().mins; if(m!==lastMin){ lastMin=m; renderNow(); renderList(false); refreshPins(); } }, 15000);
+
+/* ---------- boot: load data.json ---------- */
+renderList(true); renderNow(); renderBoard(); renderScore();
+fetch("data.json?t="+Date.now(), {cache:"no-store"}).then(r=>r.json()).then(j=>{
+  (j.pubs||[]).forEach(row=>{
+    if(state.base[row.id]) state.base[row.id] = {visited:!!row.visited, date:row.date||null, note:row.note||""};
+  });
+  // drop overrides that now match the thread
+  for(const id in state.overrides){
+    const o=state.overrides[id], b=state.base[id];
+    if(b && b.visited===o.visited && (b.date||null)===(o.date||null) && (b.note||"")===(o.note||"")) delete state.overrides[id];
+  }
+  lsSet("ledger-overrides", state.overrides);
+  state.board = j.board||[];
+  renderList(false); renderNow(); renderBoard(); refreshPins(); renderScore();
+}).catch(()=>{ $("#syncChip").textContent="offline — showing last known"; });
+
+if("serviceWorker" in navigator){ navigator.serviceWorker.register("sw.js").catch(()=>{}); }
+</script>
+</body>
+</html>

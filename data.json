@@ -1,0 +1,43 @@
+{
+ "updated": "2026-10-11",
+ "pubs": [
+  {
+   "id": "grenadier",
+   "visited": true,
+   "date": "2026-07-25",
+   "note": ""
+  },
+  {
+   "id": "nags-head",
+   "visited": true,
+   "date": "2026-07-25",
+   "note": ""
+  },
+  {
+   "id": "mayflower",
+   "visited": true,
+   "date": "2026-07-26",
+   "note": ""
+  },
+  {
+   "id": "prospect",
+   "visited": true,
+   "date": "2026-07-26",
+   "note": ""
+  }
+ ],
+ "board": [
+  {
+   "ts": "11 Oct",
+   "text": "Cittie of Yorke added (#8, City cluster) — site since 1430, Gothic hall, 2 min from the Mitre. List is 22; score 4 of 22."
+  },
+  {
+   "ts": "11 Oct",
+   "text": "City cluster is a weekday play: Butler's Head, the Jampot, the Mitre and Cittie of Yorke all shut or limited at weekends."
+  },
+  {
+   "ts": "9 Oct",
+   "text": "Before any crawl, ask in the thread — big football nights pack every pub in zones 1–2."
+  }
+ ]
+}
