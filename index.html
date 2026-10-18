@@ -76,6 +76,8 @@ header{display:flex; align-items:center; gap:14px; padding-block:18px 10px; flex
 .btn.small{padding:5px 10px; font-size:12px}
 .maptools .hint{color:var(--mut); font-size:12px; margin-left:auto}
 #map{height:62vh; min-height:340px; width:100%; background:var(--chip)}
+#map.darkmap .leaflet-tile{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.88) saturate(.45)}
+#map.darkmap .leaflet-control-attribution{background:rgba(20,24,30,.75); color:#aab}
 .legend{display:flex; gap:16px; padding:8px 12px 10px; font-size:11.5px; color:var(--mut); flex-wrap:wrap}
 .legend span{display:inline-flex; align-items:center; gap:6px}
 .k{width:12px; height:12px; border-radius:50%; flex:0 0 auto}
@@ -85,10 +87,16 @@ header{display:flex; align-items:center; gap:14px; padding-block:18px 10px; flex
 .k.me{background:#2b7de1; border:2px solid #fff; box-shadow:0 0 0 1.5px #2b7de1}
 
 .pubpin{display:grid; place-items:center; width:30px; height:30px; border-radius:50%;
-  background:#fbfaf5; border:2.5px solid #1d2127; color:#1d2127;
+  background:var(--panel); border:2.5px solid var(--ink); color:var(--ink);
   font-family:var(--font-mono); font-size:12px; font-weight:600; box-shadow:0 1px 4px rgba(0,0,0,.35)}
-.pubpin.visited{background:#dc241f; border-color:#dc241f; color:#fff}
-.pubpin.openN{box-shadow:0 0 0 3px rgba(42,122,68,.85), 0 1px 4px rgba(0,0,0,.35)}
+.pubpin.visited{background:var(--red); border-color:var(--red); color:var(--red-ink)}
+.pubpin.openN{box-shadow:0 0 0 3px var(--green), 0 1px 4px rgba(0,0,0,.35)}
+select{font:inherit; font-size:12.5px; font-weight:600; color:var(--ink); background:var(--chip);
+  border:1px solid var(--line); border-radius:7px; padding:6px 8px}
+.verdicts{display:flex; gap:6px; flex-wrap:wrap; align-items:center}
+.verdicts .vlab{font-size:11px; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:var(--mut); margin-right:2px}
+.vchip{border:1.5px solid var(--line); background:transparent; border-radius:99px; padding:5px 12px; font-size:12.5px; font-weight:600; color:var(--mut)}
+.vchip[aria-pressed="true"]{border-color:var(--red); color:var(--red)}
 .medot{width:16px; height:16px; border-radius:50%; background:#2b7de1; border:2.5px solid #fff; box-shadow:0 0 0 2px #2b7de1}
 .leaflet-popup-content{font-family:var(--font-ui); font-size:13.5px; margin:10px 14px}
 .leaflet-popup-content b{font-size:14.5px}
@@ -189,6 +197,12 @@ footer{margin-top:26px; color:var(--mut); font-size:12px; line-height:1.6}
   <div class="maptools">
     <button class="btn small primary" id="locBtn">📍 Find me</button>
     <button class="btn small" id="fitBtn">Fit all pubs</button>
+    <select id="themeSel" aria-label="Colour scheme">
+      <option value="roundel">Roundel</option>
+      <option value="bitter">Best Bitter</option>
+      <option value="nightbus">Night Bus</option>
+      <option value="green">Bottle Green</option>
+    </select>
     <div class="hint" id="locHint">Location stays on your phone — never uploaded.</div>
   </div>
   <div id="map"></div>
@@ -383,7 +397,7 @@ const state = {
   openDetail: null,
   markers: {}
 };
-PUBS.forEach(p => state.base[p.id] = {visited:false, date:null, note:""});
+PUBS.forEach(p => state.base[p.id] = {visited:false, date:null, note:"", verdict:null});
 function lsGet(k){ try{ return JSON.parse(localStorage.getItem(k)); }catch(e){ return null; } }
 function lsSet(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
 state.overrides = lsGet("ledger-overrides") || {};
@@ -404,13 +418,45 @@ function el(tag, attrs, ...kids){
 }
 
 /* ---------- map ---------- */
-const dark = matchMedia("(prefers-color-scheme: dark)").matches;
+/* ---------- colour schemes ---------- */
+const THEME_TOKENS = ["bg","panel","ink","mut","line","red","red-ink","green","amber","chip","focus"];
+const THEMES = {
+  bitter: {
+    light:{bg:"#f4ead8",panel:"#fcf6ea",ink:"#2b2118",mut:"#7a6a58",line:"#e0d3bc","red":"#a84d10","red-ink":"#ffffff",green:"#3d7a44",amber:"#a8700e",chip:"#ece0c9",focus:"#2b5fab"},
+    dark:{bg:"#1a1510",panel:"#241d15",ink:"#ece2d0",mut:"#a69880",line:"#3a3024","red":"#d97b33","red-ink":"#1a0f05",green:"#6fb27a",amber:"#d49c3f",chip:"#2e261b",focus:"#7aa7e8"}
+  },
+  nightbus: {
+    forceDark:true,
+    dark:{bg:"#10141c",panel:"#181e2a",ink:"#e8eaf2",mut:"#8e97ab",line:"#2a3345","red":"#e3b341","red-ink":"#1a1408",green:"#57b26e",amber:"#d49c3f",chip:"#222b3c",focus:"#7aa7e8"}
+  },
+  green: {
+    light:{bg:"#eef2f0",panel:"#fafcfb",ink:"#15231d",mut:"#5f7269",line:"#d3ddd7","red":"#0f7b63","red-ink":"#ffffff",green:"#2a7a44",amber:"#a8700e",chip:"#e2eae6",focus:"#2b5fab"},
+    dark:{bg:"#0f1715",panel:"#16211e",ink:"#e2ebe7",mut:"#93a79e",line:"#27352f","red":"#2fa98c","red-ink":"#06211b",green:"#5cab73",amber:"#d49c3f",chip:"#1f2d28",focus:"#7aa7e8"}
+  }
+};
+const sysDark = matchMedia("(prefers-color-scheme: dark)");
+let themeName = lsGet("ledger-theme") || "roundel";
+function themeIsDark(){ const th=THEMES[themeName]; return !!(th?.forceDark) || sysDark.matches; }
+function applyTheme(name){
+  themeName = name; lsSet("ledger-theme", name);
+  const root = document.documentElement;
+  THEME_TOKENS.forEach(t=>root.style.removeProperty("--"+t));
+  const th = THEMES[name];
+  if(th){
+    const set = th.forceDark ? th.dark : (sysDark.matches ? (th.dark||th.light) : th.light);
+    for(const k in set) root.style.setProperty("--"+k, set[k]);
+  }
+  setTiles();
+}
 const map = L.map("map", {zoomControl:true});
-L.tileLayer(dark
-  ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-  : "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
- {attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
-  subdomains:"abcd", maxZoom:19}).addTo(map);
+L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+ {attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  maxZoom:19}).addTo(map);
+function setTiles(){
+  document.getElementById("map").classList.toggle("darkmap", themeIsDark());
+}
+applyTheme(themeName);
+sysDark.addEventListener?.("change", ()=>applyTheme(themeName));
 const allBounds = L.latLngBounds(PUBS.map(p=>[p.lat,p.lon]));
 map.fitBounds(allBounds, {padding:[28,28]});
 L.marker([HOME.lat,HOME.lon],{icon:L.divIcon({className:"", html:'<div style="font-size:11px;font-weight:700;color:#656e76;text-shadow:0 0 3px var(--bg),0 0 3px var(--bg)">◇ CJ</div>', iconSize:[40,16], iconAnchor:[8,8]}), interactive:false}).addTo(map);
@@ -438,6 +484,9 @@ PUBS.forEach(p=>{
 });
 function refreshPins(){ PUBS.forEach(p=> state.markers[p.id].setIcon(pinFor(p))); }
 $("#fitBtn").addEventListener("click",()=> map.fitBounds(allBounds,{padding:[28,28]}));
+const themeSel = $("#themeSel");
+themeSel.value = THEMES[themeName] ? themeName : "roundel";
+themeSel.addEventListener("change", ()=>applyTheme(themeSel.value));
 
 /* GPS */
 let meMarker=null, meRing=null, watching=false;
@@ -489,6 +538,7 @@ function renderNow(){
 }
 
 /* ---------- list ---------- */
+const VEMOJI = {top:"🏆", solid:"👍", meh:"👎"};
 const clustersEl = $("#clusters");
 function cssId(s){ return s.replace(/[^a-z0-9]+/gi,"-").toLowerCase(); }
 function renderList(rebuild=true){
@@ -582,7 +632,7 @@ function detailFor(id){
   }},"Save note");
   const tickBtn = el("button",{class:"btn primary", onclick:()=>{
     const now = !d.visited;
-    setOverride(id, {visited:now, date: now? fmtISO.format(new Date()) : null, note: ta.value.trim()});
+    setOverride(id, {visited:now, date: now? fmtISO.format(new Date()) : null, note: ta.value.trim(), verdict: d.verdict||null});
   }}, d.visited ? "Un-tick" : "Tick it off");
   const gmaps = state.me
     ? `https://www.google.com/maps/dir/?api=1&origin=${state.me[0]},${state.me[1]}&destination=${encodeURIComponent(p.q)}&travelmode=walking`
@@ -599,6 +649,12 @@ function detailFor(id){
       tickBtn,
       d.visited? el("span",{class:"vdate"},"ticked "+(d.date||"")) : null,
       isLocal(id)? el("span",{class:"localflag"},"saved locally — mention it in the thread to sync") : null),
+    el("div",{class:"verdicts"},
+      el("span",{class:"vlab"},"Verdict"),
+      ...[["top","🏆 Top tier"],["solid","👍 Solid"],["meh","👎 Not for me"]].map(([val,label])=>
+        el("button",{class:"vchip","aria-pressed":String(d.verdict===val), onclick:()=>{
+          setOverride(id, {...eff(id), note: ta.value.trim(), verdict: d.verdict===val? null : val});
+        }}, label))),
     el("div",{class:"notebox"},
       el("label",{for:"note-"+id},"Field note"),
       ta,
@@ -606,7 +662,7 @@ function detailFor(id){
 }
 function setOverride(id, body){
   const b = state.base[id];
-  if(b && b.visited===body.visited && (b.date||null)===(body.date||null) && (b.note||"")===(body.note||"")){
+  if(b && b.visited===body.visited && (b.date||null)===(body.date||null) && (b.note||"")===(body.note||"") && (b.verdict||null)===(body.verdict||null)){
     delete state.overrides[id];   // matches the thread again — no flag needed
   } else {
     state.overrides[id] = body;
@@ -650,12 +706,12 @@ setInterval(()=>{ const m=londonNow().mins; if(m!==lastMin){ lastMin=m; renderNo
 renderList(true); renderNow(); renderBoard(); renderScore();
 fetch("data.json?t="+Date.now(), {cache:"no-store"}).then(r=>r.json()).then(j=>{
   (j.pubs||[]).forEach(row=>{
-    if(state.base[row.id]) state.base[row.id] = {visited:!!row.visited, date:row.date||null, note:row.note||""};
+    if(state.base[row.id]) state.base[row.id] = {visited:!!row.visited, date:row.date||null, note:row.note||"", verdict:row.verdict||null};
   });
   // drop overrides that now match the thread
   for(const id in state.overrides){
     const o=state.overrides[id], b=state.base[id];
-    if(b && b.visited===o.visited && (b.date||null)===(o.date||null) && (b.note||"")===(o.note||"")) delete state.overrides[id];
+    if(b && b.visited===o.visited && (b.date||null)===(o.date||null) && (b.note||"")===(o.note||"") && (b.verdict||null)===(o.verdict||null)) delete state.overrides[id];
   }
   lsSet("ledger-overrides", state.overrides);
   state.board = j.board||[];
