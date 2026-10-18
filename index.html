@@ -526,6 +526,7 @@ function pubCard(p,t){
       el("div",{class:"pname"}, p.name),
       el("div",{class:"pmeta"},
         el("span",{}, p.station),
+        d.verdict ? el("span",{}, VEMOJI[d.verdict]) : null,
         d.note ? el("span",{}, "✎ noted") : null,
         isLocal(p.id) ? el("span",{class:"localflag"},"local — tell Claude") : null)),
     el("span",{class:"pright"},
@@ -545,6 +546,7 @@ function updatePubCard(p,t){
   if(meta){
     meta.innerHTML="";
     meta.append(el("span",{},p.station));
+    if(d.verdict) meta.append(el("span",{}, VEMOJI[d.verdict]));
     if(d.note) meta.append(el("span",{},"✎ noted"));
     if(isLocal(p.id)) meta.append(el("span",{class:"localflag"},"local — tell Claude"));
   }
