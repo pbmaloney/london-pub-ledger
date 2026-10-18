@@ -62,12 +62,15 @@ header{display:flex; align-items:center; gap:14px; padding-block:18px 10px; flex
 .scorebar .count{font-family:var(--font-mono); font-weight:500; letter-spacing:0; font-variant-numeric:tabular-nums}
 .syncchip{font-size:11px; font-weight:600; letter-spacing:.05em; padding:2px 8px; border-radius:99px; background:rgba(255,255,255,.18)}
 
-.board{background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:12px 14px; margin-top:14px}
-.board .bh{font-size:11px; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--mut); margin-bottom:6px}
-.board ul{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:6px}
-.board li{font-size:14px; display:flex; gap:10px; align-items:baseline}
-.board li .ts{font-family:var(--font-mono); font-size:10.5px; color:var(--mut); flex:0 0 auto}
-.board li .tx{min-width:0}
+.feed{margin-top:14px; background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:10px 14px 12px}
+.tabs{display:flex; gap:6px; margin-bottom:8px}
+.tab{border:1.5px solid var(--line); background:transparent; border-radius:99px; padding:4px 12px; font-size:12px; font-weight:700; color:var(--mut)}
+.tab[aria-pressed="true"]{border-color:var(--ink); color:var(--ink)}
+.feed ul{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:6px}
+.feed li{font-size:13px; display:flex; gap:10px; align-items:baseline}
+.feed li .ts{font-family:var(--font-mono); font-size:10.5px; color:var(--mut); flex:0 0 auto; min-width:42px}
+.feed li .tx{min-width:0}
+.feed .none{color:var(--mut); font-size:12.5px}
 
 .mapwrap{margin-top:14px; background:var(--panel); border:1px solid var(--line); border-radius:10px; overflow:hidden}
 .maptools{display:flex; align-items:center; gap:8px; padding:10px 12px; border-bottom:1px solid var(--line); flex-wrap:wrap}
@@ -81,16 +84,20 @@ header{display:flex; align-items:center; gap:14px; padding-block:18px 10px; flex
 .legend{display:flex; gap:16px; padding:8px 12px 10px; font-size:11.5px; color:var(--mut); flex-wrap:wrap}
 .legend span{display:inline-flex; align-items:center; gap:6px}
 .k{width:12px; height:12px; border-radius:50%; flex:0 0 auto}
-.k.un{background:var(--panel); border:2px solid var(--ink)}
-.k.vis{background:var(--red)}
+.k.un{background:var(--panel); border:2px solid var(--red)}
+.k.vis{background:var(--mut); opacity:.6}
 .k.op{border:2.5px solid var(--green); background:transparent}
 .k.me{background:#2b7de1; border:2px solid #fff; box-shadow:0 0 0 1.5px #2b7de1}
 
 .pubpin{display:grid; place-items:center; width:30px; height:30px; border-radius:50%;
-  background:var(--panel); border:2.5px solid var(--ink); color:var(--ink);
+  background:var(--panel); border:2.5px solid var(--red); color:var(--red);
   font-family:var(--font-mono); font-size:12px; font-weight:600; box-shadow:0 1px 4px rgba(0,0,0,.35)}
-.pubpin.visited{background:var(--red); border-color:var(--red); color:var(--red-ink)}
+.pubpin.visited{background:var(--chip); border-color:var(--line); color:var(--mut); opacity:.85}
 .pubpin.openN{box-shadow:0 0 0 3px var(--green), 0 1px 4px rgba(0,0,0,.35)}
+.pubdot{border-radius:50%; box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.pubdot.todo{width:13px; height:13px; background:var(--red); border:2px solid var(--panel)}
+.pubdot.visited{width:10px; height:10px; background:var(--mut); opacity:.55; border:2px solid var(--panel)}
+.pubdot.openN{box-shadow:0 0 0 3px var(--green), 0 1px 3px rgba(0,0,0,.3)}
 select{font:inherit; font-size:12.5px; font-weight:600; color:var(--ink); background:var(--chip);
   border:1px solid var(--line); border-radius:7px; padding:6px 8px}
 .verdicts{display:flex; gap:6px; flex-wrap:wrap; align-items:center}
@@ -188,11 +195,6 @@ footer{margin-top:26px; color:var(--mut); font-size:12px; line-height:1.6}
   <span class="syncchip" id="syncChip">loading…</span>
 </div>
 
-<section class="board" id="board" hidden>
-  <div class="bh">From the running thread</div>
-  <ul id="boardList"></ul>
-</section>
-
 <section class="mapwrap" aria-label="Pub map">
   <div class="maptools">
     <button class="btn small primary" id="locBtn">📍 Find me</button>
@@ -217,6 +219,14 @@ footer{margin-top:26px; color:var(--mut); font-size:12px; line-height:1.6}
 <section class="now">
   <div class="bh" id="nowHead">Open right now</div>
   <div class="rows" id="nowRows"><div class="none">Working it out…</div></div>
+</section>
+
+<section class="feed">
+  <div class="tabs" role="tablist">
+    <button class="tab" id="tabLog">Field log</button>
+    <button class="tab" id="tabThread">From the thread</button>
+  </div>
+  <ul id="feedList"></ul>
 </section>
 
 <div class="clusters" id="clusters"></div>
@@ -463,7 +473,12 @@ L.marker([HOME.lat,HOME.lon],{icon:L.divIcon({className:"", html:'<div style="fo
 
 function pinFor(p){
   const d = eff(p.id), t = londonNow(), st = statusFor(p,t);
-  const cls = "pubpin"+(d.visited?" visited":"")+(!d.visited&&st.open?" openN":"");
+  const open = !d.visited && st.open;
+  if(map.getZoom() < 13){
+    const cls = "pubdot "+(d.visited?"visited":"todo")+(open?" openN":"");
+    return L.divIcon({className:"", html:`<div class="${cls}"></div>`, iconSize:[17,17], iconAnchor:[8,8], popupAnchor:[0,-8]});
+  }
+  const cls = "pubpin"+(d.visited?" visited":"")+(open?" openN":"");
   return L.divIcon({className:"", html:`<div class="${cls}">${p.n}</div>`, iconSize:[30,30], iconAnchor:[15,15], popupAnchor:[0,-16]});
 }
 function popupFor(p){
@@ -483,6 +498,11 @@ PUBS.forEach(p=>{
   state.markers[p.id]=m;
 });
 function refreshPins(){ PUBS.forEach(p=> state.markers[p.id].setIcon(pinFor(p))); }
+let lastZoomBand = null;
+map.on("zoomend", ()=>{
+  const band = map.getZoom() < 13 ? "dot" : "pin";
+  if(band !== lastZoomBand){ lastZoomBand = band; refreshPins(); }
+});
 $("#fitBtn").addEventListener("click",()=> map.fitBounds(allBounds,{padding:[28,28]}));
 const themeSel = $("#themeSel");
 themeSel.value = THEMES[themeName] ? themeName : "roundel";
@@ -668,7 +688,7 @@ function setOverride(id, body){
     state.overrides[id] = body;
   }
   lsSet("ledger-overrides", state.overrides);
-  renderList(false); renderNow(); refreshPins();
+  renderList(false); renderNow(); refreshPins(); renderFeed();
   const card=$("#pub-"+id);
   if(card && card.querySelector(".detail")){ card.querySelector(".detail").remove(); card.append(detailFor(id)); }
 }
@@ -686,14 +706,38 @@ function renderScore(){
   const n = Object.keys(state.overrides).length;
   $("#syncChip").textContent = n ? n+" local change"+(n>1?"s":"")+" — tell Claude" : "in sync with the thread";
 }
-function renderBoard(){
-  const b = $("#board"), ul=$("#boardList");
-  b.hidden = !state.board.length;
-  ul.innerHTML="";
-  state.board.slice(0,6).forEach(it=>{
-    ul.append(el("li",{}, el("span",{class:"ts"}, it.ts||""), el("span",{class:"tx"}, it.text||"")));
+let feedMode = lsGet("ledger-feedmode") || "log";
+function fmtD(iso){
+  if(!iso) return "";
+  const parts = iso.split("-");
+  const M = ["","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  return parseInt(parts[2],10)+" "+(M[parseInt(parts[1],10)]||"");
+}
+function renderFeed(){
+  $("#tabLog").setAttribute("aria-pressed", String(feedMode==="log"));
+  $("#tabThread").setAttribute("aria-pressed", String(feedMode==="thread"));
+  const ul = $("#feedList"); ul.innerHTML="";
+  if(feedMode==="thread"){
+    if(!state.board.length){ ul.append(el("li",{class:"none"},"Nothing from the thread yet.")); return; }
+    state.board.slice(0,8).forEach(it=>{
+      ul.append(el("li",{}, el("span",{class:"ts"}, it.ts||""), el("span",{class:"tx"}, it.text||"")));
+    });
+    return;
+  }
+  const items = [];
+  PUBS.forEach(p=>{ const d = eff(p.id); if(d.visited || d.note || d.verdict) items.push({p,d}); });
+  items.sort((a,b)=> String(b.d.date||"").localeCompare(String(a.d.date||"")));
+  if(!items.length){ ul.append(el("li",{class:"none"},"Nothing captured yet — tick a pub or leave a note and it lands here.")); return; }
+  items.forEach(({p,d})=>{
+    let tx = (d.visited?"\u2713 ":"") + p.name;
+    if(d.verdict) tx += " " + VEMOJI[d.verdict];
+    if(d.note) tx += " \u2014 " + d.note;
+    if(isLocal(p.id)) tx += "  (local)";
+    ul.append(el("li",{}, el("span",{class:"ts"}, fmtD(d.date)), el("span",{class:"tx"}, tx)));
   });
 }
+$("#tabLog").addEventListener("click", ()=>{ feedMode="log"; lsSet("ledger-feedmode","log"); renderFeed(); });
+$("#tabThread").addEventListener("click", ()=>{ feedMode="thread"; lsSet("ledger-feedmode","thread"); renderFeed(); });
 function tick(){
   $("#clock").textContent = fmtClock.format(new Date());
   $("#clockDate").textContent = fmtDate.format(new Date())+" · London";
@@ -703,7 +747,7 @@ let lastMin = londonNow().mins;
 setInterval(()=>{ const m=londonNow().mins; if(m!==lastMin){ lastMin=m; renderNow(); renderList(false); refreshPins(); } }, 15000);
 
 /* ---------- boot: load data.json ---------- */
-renderList(true); renderNow(); renderBoard(); renderScore();
+renderList(true); renderNow(); renderFeed(); renderScore();
 fetch("data.json?t="+Date.now(), {cache:"no-store"}).then(r=>r.json()).then(j=>{
   (j.pubs||[]).forEach(row=>{
     if(state.base[row.id]) state.base[row.id] = {visited:!!row.visited, date:row.date||null, note:row.note||"", verdict:row.verdict||null};
@@ -715,7 +759,7 @@ fetch("data.json?t="+Date.now(), {cache:"no-store"}).then(r=>r.json()).then(j=>{
   }
   lsSet("ledger-overrides", state.overrides);
   state.board = j.board||[];
-  renderList(false); renderNow(); renderBoard(); refreshPins(); renderScore();
+  renderList(false); renderNow(); renderFeed(); refreshPins(); renderScore();
 }).catch(()=>{ $("#syncChip").textContent="offline — showing last known"; });
 
 if("serviceWorker" in navigator){ navigator.serviceWorker.register("sw.js").catch(()=>{}); }

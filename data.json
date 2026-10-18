@@ -1,35 +1,47 @@
 {
- "updated": "2026-10-11",
+ "updated": "2026-10-18",
  "pubs": [
   {
    "id": "grenadier",
    "visited": true,
    "date": "2026-07-25",
-   "note": ""
+   "note": "25 Jul — with the Nag's Head, capping the Box Hill → Dorking day. Money ceiling and the sentry box."
   },
   {
    "id": "nags-head",
    "visited": true,
    "date": "2026-07-25",
-   "note": ""
+   "note": "25 Jul — two minutes after the Grenadier. Sunken bar, no phones; frozen in 1950 as advertised."
   },
   {
    "id": "mayflower",
    "visited": true,
    "date": "2026-07-26",
-   "note": ""
+   "note": "26 Jul — walked from Maltby St via Bermondsey Wall past The Angel. Deck over the Thames on the actual 1620 mooring."
   },
   {
    "id": "prospect",
    "visited": true,
    "date": "2026-07-26",
-   "note": ""
+   "note": "26 Jul — one Overground stop after the Mayflower on a tired back. Half at the 1520 pewter bar, noose out back, Windrush home to CJ."
   }
  ],
  "board": [
   {
-   "ts": "11 Oct",
-   "text": "Cittie of Yorke added (#8, City cluster) — site since 1430, Gothic hall, 2 min from the Mitre. List is 22; score 4 of 22."
+   "ts": "18 Oct",
+   "text": "Blue Anchor (1722, Hammersmith Bridge) pairs with The Dove (#22): station → bridge → riverside walk → Dove. The West errand, solved."
+  },
+  {
+   "ts": "17 Oct",
+   "text": "Alternates: Holly Bush on the Heath day (can swap for the Spaniards); Plume of Feathers (1691) on the Greenwich day, 5 min from Trafalgar Tavern."
+  },
+  {
+   "ts": "17 Oct",
+   "text": "Churchill Arms (#21) pairing: the tick plus Sunday roast at the Fat Badger or pie at the Pelican, all within a 10-min Notting Hill walk."
+  },
+  {
+   "ts": "15 Oct",
+   "text": "Old Bank of England (Fleet St, 1888 banking hall) is a pending candidate — Patrick's call. Slots by the Cheshire Cheese."
   },
   {
    "ts": "11 Oct",
