@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>London Pub Ledger</title>
+<title>The Running Tab</title>
 <meta name="theme-color" content="#dc241f">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Pub Ledger">
+<meta name="apple-mobile-web-app-title" content="Running Tab">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700;800&family=IBM+Plex+Mono:wght@500&display=swap">
 <style>
@@ -195,8 +195,8 @@ footer{margin-top:26px; color:var(--mut); font-size:12px; line-height:1.6}
     </svg>
   </div>
   <div class="masthead">
-    <h1>London Pub Ledger</h1>
-    <div class="sub" id="subTitle">The iconic pubs · running since July 2026</div>
+    <h1>The Running Tab</h1>
+    <div class="sub" id="subTitle">London pubs: been, found, and still owed</div>
   </div>
   <div class="clockbox">
     <div class="t" id="clock">–:–:–</div>
@@ -850,7 +850,7 @@ function renderScore(){
   const done = PUBS.filter(p=>eff(p.id).visited).length;
   $("#scoreCount").textContent = done+" of "+PUBS.length;
   $("#roundelCount").textContent = done+"/"+PUBS.length;
-  $("#subTitle").textContent = "The iconic "+PUBS.length+" · running since July 2026";
+  $("#subTitle").textContent = "London pubs: been, found, and still owed";
   const n = Object.keys(state.overrides).length;
   $("#syncChip").textContent = n ? n+" local change"+(n>1?"s":"")+" — tell Claude" : "in sync with the thread";
 }

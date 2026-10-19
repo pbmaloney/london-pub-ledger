@@ -1,6 +1,6 @@
 {
- "name": "London Pub Ledger",
- "short_name": "Pub Ledger",
+ "name": "The Running Tab",
+ "short_name": "Running Tab",
  "start_url": ".",
  "scope": ".",
  "display": "standalone",
