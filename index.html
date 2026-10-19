@@ -18,7 +18,7 @@
   --bg:#f2f1ea; --panel:#fbfaf5; --ink:#1d2127; --mut:#656e76; --line:#d9d6c8;
   --red:#dc241f; --red-ink:#ffffff;
   --green:#2a7a44; --amber:#a86f0e;
-  --chip:#e9e7db; --focus:#2b5fab;
+  --chip:#e9e7db; --focus:#2b5fab; --tan:#c9a36a;
   --font-ui:"Hanken Grotesk",-apple-system,"Segoe UI",sans-serif;
   --font-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
 }
@@ -27,7 +27,7 @@
     --bg:#13171b; --panel:#1b2127; --ink:#e9e7de; --mut:#9aa3ac; --line:#2c343c;
     --red:#e2453f; --red-ink:#ffffff;
     --green:#5cab73; --amber:#d49c3f;
-    --chip:#242c33; --focus:#7aa7e8;
+    --chip:#242c33; --focus:#7aa7e8; --tan:#c29a60;
     color-scheme: dark;
   }
 }
@@ -84,19 +84,19 @@ header{display:flex; align-items:center; gap:14px; padding-block:18px 10px; flex
 .legend{display:flex; gap:16px; padding:8px 12px 10px; font-size:11.5px; color:var(--mut); flex-wrap:wrap}
 .legend span{display:inline-flex; align-items:center; gap:6px}
 .k{width:12px; height:12px; border-radius:50%; flex:0 0 auto}
-.k.un{background:var(--panel); border:2px solid var(--red)}
-.k.vis{background:var(--mut); opacity:.6}
+.k.un{background:var(--red); border:2px solid var(--ink)}
+.k.vis{background:var(--tan); border:2px solid var(--ink)}
 .k.op{border:2.5px solid var(--green); background:transparent}
 .k.me{background:#2b7de1; border:2px solid #fff; box-shadow:0 0 0 1.5px #2b7de1}
 
 .pubpin{display:grid; place-items:center; width:30px; height:30px; border-radius:50%;
-  background:var(--panel); border:2.5px solid var(--red); color:var(--red);
+  background:var(--panel); border:2.5px solid var(--ink); color:var(--red);
   font-family:var(--font-mono); font-size:12px; font-weight:600; box-shadow:0 1px 4px rgba(0,0,0,.35)}
-.pubpin.visited{background:var(--chip); border-color:var(--line); color:var(--mut); opacity:.85}
+.pubpin.visited{background:var(--tan); border-color:var(--ink); color:#241c10}
 .pubpin.openN{box-shadow:0 0 0 3px var(--green), 0 1px 4px rgba(0,0,0,.35)}
 .pubdot{border-radius:50%; box-shadow:0 1px 3px rgba(0,0,0,.3)}
-.pubdot.todo{width:13px; height:13px; background:var(--red); border:2px solid var(--panel)}
-.pubdot.visited{width:10px; height:10px; background:var(--mut); opacity:.55; border:2px solid var(--panel)}
+.pubdot.todo{width:13px; height:13px; background:var(--red); border:2px solid var(--ink)}
+.pubdot.visited{width:12px; height:12px; background:var(--tan); border:2px solid var(--ink)}
 .pubdot.openN{box-shadow:0 0 0 3px var(--green), 0 1px 3px rgba(0,0,0,.3)}
 select{font:inherit; font-size:12.5px; font-weight:600; color:var(--ink); background:var(--chip);
   border:1px solid var(--line); border-radius:7px; padding:6px 8px}
@@ -104,6 +104,21 @@ select{font:inherit; font-size:12.5px; font-weight:600; color:var(--ink); backgr
 .verdicts .vlab{font-size:11px; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:var(--mut); margin-right:2px}
 .vchip{border:1.5px solid var(--line); background:transparent; border-radius:99px; padding:5px 12px; font-size:12.5px; font-weight:600; color:var(--mut)}
 .vchip[aria-pressed="true"]{border-color:var(--red); color:var(--red)}
+.casdot{width:12px; height:12px; border-radius:50%; background:var(--tan); border:2px solid var(--panel); box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.k.cas{background:var(--tan)}
+.casuals{margin-top:20px}
+.casuals .ch{display:flex; align-items:center; gap:10px; margin-bottom:8px; flex-wrap:wrap}
+.casuals .ch h2{font-size:13px; font-weight:800; letter-spacing:.09em; text-transform:uppercase}
+.casuals .ch .cn{color:var(--mut); font-size:12px; font-family:var(--font-mono)}
+.casuals .ch button{margin-left:auto}
+#casForm{background:var(--panel); border:1px dashed var(--line); border-radius:10px; padding:12px 14px; margin-bottom:10px; display:flex; flex-direction:column; gap:8px}
+#casForm .row{display:flex; gap:8px}
+#casForm input{flex:1 1 auto; min-width:0; font:inherit; font-size:14px; background:var(--bg); color:var(--ink); border:1px solid var(--line); border-radius:7px; padding:8px 10px}
+#casResults{display:flex; flex-direction:column; gap:6px}
+.casres{text-align:left; background:var(--bg); border:1px solid var(--line); border-radius:7px; padding:8px 10px; font-size:13px}
+.casres b{display:block; font-size:13.5px}
+.casres span{color:var(--mut); font-size:12px}
+.cashint{font-size:12px; color:var(--mut)}
 .medot{width:16px; height:16px; border-radius:50%; background:#2b7de1; border:2.5px solid #fff; box-shadow:0 0 0 2px #2b7de1}
 .leaflet-popup-content{font-family:var(--font-ui); font-size:13.5px; margin:10px 14px}
 .leaflet-popup-content b{font-size:14.5px}
@@ -128,9 +143,9 @@ select{font:inherit; font-size:12.5px; font-weight:600; color:var(--ink); backgr
 .cluster .ch .tip{color:var(--mut); font-size:12px; margin-left:auto; text-align:right}
 .pub{background:var(--panel); border:1px solid var(--line); border-radius:10px; margin-bottom:8px; overflow:hidden}
 .pubrow{display:flex; align-items:center; gap:12px; width:100%; background:none; border:0; text-align:left; padding:11px 13px}
-.num{flex:0 0 26px; width:26px; height:26px; border-radius:50%; border:2px solid var(--ink);
-  display:grid; place-items:center; font-family:var(--font-mono); font-size:11.5px; font-weight:600; background:var(--panel)}
-.pub.visited .num{background:var(--red); border-color:var(--red); color:var(--red-ink)}
+.num{flex:0 0 26px; width:26px; height:26px; border-radius:50%; border:2px solid var(--red);
+  display:grid; place-items:center; font-family:var(--font-mono); font-size:11.5px; font-weight:600; background:var(--panel); color:var(--red)}
+.pub.visited .num{background:var(--tan); border-color:var(--ink); color:#241c10}
 .pmain{flex:1 1 auto; min-width:0}
 .pname{font-weight:700; font-size:15.5px}
 .pmeta{color:var(--mut); font-size:12.5px; display:flex; gap:8px; flex-wrap:wrap}
@@ -210,8 +225,9 @@ footer{margin-top:26px; color:var(--mut); font-size:12px; line-height:1.6}
   <div id="map"></div>
   <div class="legend">
     <span><span class="k un"></span> to do</span>
-    <span><span class="k vis"></span> ticked off</span>
+    <span><span class="k vis"></span> visited</span>
     <span><span class="k op"></span> open right now</span>
+    <span><span class="k cas"></span> off-list visit</span>
     <span><span class="k me"></span> you</span>
   </div>
 </section>
@@ -230,6 +246,23 @@ footer{margin-top:26px; color:var(--mut); font-size:12px; line-height:1.6}
 </section>
 
 <div class="clusters" id="clusters"></div>
+
+<section class="casuals">
+  <div class="ch">
+    <h2>Off-list visits</h2>
+    <span class="cn" id="casCount"></span>
+    <button class="btn small" id="casAddBtn">+ Add a pub</button>
+  </div>
+  <div id="casForm" hidden>
+    <div class="row">
+      <input id="casQ" placeholder="Pub name + area (e.g. Dog &amp; Bell Deptford)" enterkeyhint="search">
+      <button class="btn" id="casSearchBtn">Search</button>
+    </div>
+    <div id="casResults"></div>
+    <div class="cashint" id="casHint">Searches OpenStreetMap. No match? <button class="btn small" id="casAtPin">Add at my location</button></div>
+  </div>
+  <div id="casList"></div>
+</section>
 
 <footer>
   Hours shown are the typical pattern — the ↗ link in each pub checks the live listing before you commit to a journey.
@@ -411,6 +444,16 @@ PUBS.forEach(p => state.base[p.id] = {visited:false, date:null, note:"", verdict
 function lsGet(k){ try{ return JSON.parse(localStorage.getItem(k)); }catch(e){ return null; } }
 function lsSet(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
 state.overrides = lsGet("ledger-overrides") || {};
+state.casualsBase = [];
+state.casualsLocal = lsGet("ledger-casuals") || [];
+function allCasuals(){
+  const seen = {};
+  const out = [];
+  state.casualsBase.forEach(c=>{ seen[c.id]=true; out.push({...c, local:false}); });
+  state.casualsLocal.forEach(c=>{ if(!seen[c.id]) out.push({...c, local:true}); });
+  out.sort((a,b)=> String(b.date||"").localeCompare(String(a.date||"")));
+  return out;
+}
 function eff(id){ return state.overrides[id] || state.base[id]; }
 function isLocal(id){ return !!state.overrides[id]; }
 
@@ -488,7 +531,7 @@ function popupFor(p){
     ? `https://www.google.com/maps/dir/?api=1&origin=${state.me[0]},${state.me[1]}&destination=${encodeURIComponent(p.q)}&travelmode=walking`
     : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.q)}`;
   return `<b>${p.n}. ${p.name}</b><br>`+
-    `<span class="pp-status ${st.cls}">${d.visited ? "✓ ticked "+(d.date||"") : st.label}</span>${dist}<br>`+
+    `<span class="pp-status ${st.cls}">${d.visited ? "✓ ticked "+fmtD(d.date) : st.label}</span>${dist}<br>`+
     `<a class="pp-go" href="${gmaps}" target="_blank" rel="noopener">Directions ↗</a> · `+
     `<a class="pp-go" href="#" onclick="openPub('${p.id}');return false;">Details ↓</a>`;
 }
@@ -530,6 +573,111 @@ $("#locBtn").addEventListener("click",()=>{
   }, err=>{
     $("#locHint").textContent = err.code===1 ? "Location declined — tap a pin instead." : "No fix — try again outside.";
   }, {enableHighAccuracy:true, maximumAge:15000, timeout:20000});
+});
+
+/* ---------- visited & liked (off-list) ---------- */
+let casMarkers = {};
+function casPopup(c){
+  return `<b>${c.name}</b><br><span class="pp-status">off-list visit</span>`+
+    (c.date? `<br>visited ${fmtD(c.date)}`:"") + (c.note? `<br>${c.note}`:"");
+}
+function renderCasualPins(){
+  for(const id in casMarkers){ map.removeLayer(casMarkers[id]); }
+  casMarkers = {};
+  allCasuals().forEach(c=>{
+    const m = L.marker([c.lat,c.lon], {icon:L.divIcon({className:"", html:'<div class="casdot"></div>', iconSize:[16,16], iconAnchor:[8,8], popupAnchor:[0,-8]})}).addTo(map);
+    m.bindPopup(()=>casPopup(c));
+    casMarkers[c.id]=m;
+  });
+}
+function saveCasualsLocal(){ lsSet("ledger-casuals", state.casualsLocal); }
+function renderCasuals(){
+  const list = $("#casList"); list.innerHTML="";
+  const cs = allCasuals();
+  $("#casCount").textContent = cs.length ? String(cs.length) : "";
+  cs.forEach(c=>{
+    const card = el("div",{class:"pub"},
+      el("button",{class:"pubrow", onclick:()=>{ const ex=card.querySelector(".detail"); if(ex){ex.remove();return;} card.append(casDetail(c)); }},
+        el("span",{class:"num", style:"border-color:var(--tan); color:var(--tan)"}, "\u25CF"),
+        el("span",{class:"pmain"},
+          el("div",{class:"pname"}, c.name),
+          el("div",{class:"pmeta"},
+            el("span",{}, c.area||""),
+            c.verdict ? el("span",{}, VEMOJI[c.verdict]) : null,
+            c.note ? el("span",{}, "\u270E noted") : null,
+            c.local ? el("span",{class:"localflag"},"local \u2014 tell Claude") : null)),
+        el("span",{class:"pright"},
+          el("span",{class:"pdist"}, c.date ? fmtD(c.date) : ""))));
+    list.append(card);
+  });
+}
+function casDetail(c){
+  const ta = el("textarea",{placeholder:"Field note \u2014 your words"});
+  ta.value = c.note||"";
+  function saveCas(mut){
+    let row = state.casualsLocal.find(x=>x.id===c.id);
+    if(!row){ row = {...c}; delete row.local; state.casualsLocal.push(row); }
+    mut(row);
+    saveCasualsLocal(); renderCasuals(); renderCasualPins(); renderFeed();
+  }
+  const verdictRow = el("div",{class:"verdicts"},
+    el("span",{class:"vlab"},"Verdict"),
+    ...[["top","\u{1F3C6} Top tier"],["solid","\u{1F44D} Solid"],["meh","\u{1F44E} Not for me"]].map(([val,label])=>
+      el("button",{class:"vchip","aria-pressed":String(c.verdict===val), onclick:()=>saveCas(r=>{ r.verdict = c.verdict===val? null : val; r.note = ta.value.trim(); })}, label)));
+  const kids = [
+    verdictRow,
+    el("div",{class:"notebox"},
+      el("label",{},"Field note"),
+      ta,
+      el("div",{class:"nrow"},
+        el("button",{class:"btn", onclick:(e)=>{ saveCas(r=>{ r.note = ta.value.trim(); }); flash(e.target.parentElement,"Saved on this phone"); }},"Save note"),
+        c.local ? el("button",{class:"btn", onclick:()=>{
+          state.casualsLocal = state.casualsLocal.filter(x=>x.id!==c.id);
+          saveCasualsLocal(); renderCasuals(); renderCasualPins(); renderFeed();
+        }},"Remove") : null))
+  ];
+  return el("div",{class:"detail"}, ...kids);
+}
+function slugify(n){ return "c-"+n.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,60); }
+function addCasual(name, area, lat, lon){
+  const id = slugify(name);
+  if(allCasuals().some(c=>c.id===id)) { $("#casHint").textContent = "Already on the board."; return; }
+  state.casualsLocal.push({id, name, area, lat, lon, date: fmtISO.format(new Date()), note:"", verdict:null});
+  saveCasualsLocal();
+  $("#casForm").hidden = true; $("#casQ").value=""; $("#casResults").innerHTML="";
+  renderCasuals(); renderCasualPins(); renderFeed();
+  map.setView([lat,lon], Math.max(map.getZoom(),14));
+}
+$("#casAddBtn").addEventListener("click", ()=>{ const f=$("#casForm"); f.hidden=!f.hidden; if(!f.hidden) $("#casQ").focus(); });
+async function casSearch(){
+  const q = $("#casQ").value.trim();
+  if(!q) return;
+  const res = $("#casResults"); res.innerHTML="";
+  res.append(el("div",{class:"cashint"},"Searching\u2026"));
+  try{
+    const r = await fetch("https://nominatim.openstreetmap.org/search?format=jsonv2&limit=6&q="+encodeURIComponent(q), {headers:{"Accept":"application/json"}});
+    const rows = await r.json();
+    res.innerHTML="";
+    if(!rows.length){ res.append(el("div",{class:"cashint"},"No match \u2014 try adding the area, or use your location.")); return; }
+    rows.forEach(row=>{
+      const parts = (row.display_name||"").split(",").map(x=>x.trim());
+      const area = parts.slice(1,3).join(", ");
+      res.append(el("button",{class:"casres", onclick:()=>addCasual(parts[0]||q, area, parseFloat(row.lat), parseFloat(row.lon))},
+        el("b",{}, parts[0]||q),
+        el("span",{}, area)));
+    });
+  }catch(e){
+    res.innerHTML="";
+    res.append(el("div",{class:"cashint"},"Search unreachable \u2014 use \u201CAdd at my location\u201D or add it in the thread."));
+  }
+}
+$("#casSearchBtn").addEventListener("click", casSearch);
+$("#casQ").addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); casSearch(); } });
+$("#casAtPin").addEventListener("click", ()=>{
+  const q = $("#casQ").value.trim();
+  if(!q){ $("#casHint").textContent = "Type the pub's name first, then add at your location."; return; }
+  const at = state.me || [map.getCenter().lat, map.getCenter().lng];
+  addCasual(q, state.me ? "at your location" : "at map centre", at[0], at[1]);
 });
 
 /* ---------- now strip ---------- */
@@ -600,7 +748,7 @@ function pubCard(p,t){
         d.note ? el("span",{}, "✎ noted") : null,
         isLocal(p.id) ? el("span",{class:"localflag"},"local — tell Claude") : null)),
     el("span",{class:"pright"},
-      el("span",{class:"status "+(d.visited?"open":st.cls), id:"st-"+p.id}, d.visited ? "✓ "+(d.date||"done") : st.label),
+      el("span",{class:"status "+(d.visited?"open":st.cls), id:"st-"+p.id}, d.visited ? "✓ "+(d.date? fmtD(d.date):"done") : st.label),
       el("span",{class:"pdist", id:"dist-"+p.id}, km!=null ? walkTxt(km) : ""))));
   return card;
 }
@@ -610,7 +758,7 @@ function updatePubCard(p,t){
   card.classList.toggle("visited", !!d.visited);
   const stEl = $("#st-"+p.id);
   stEl.className = "status " + (d.visited? "open" : st.cls);
-  stEl.textContent = d.visited ? "✓ "+(d.date||"done") : st.label;
+  stEl.textContent = d.visited ? "✓ "+(d.date? fmtD(d.date):"done") : st.label;
   $("#dist-"+p.id).textContent = state.me ? walkTxt(haversineKm(state.me,[p.lat,p.lon])) : "";
   const meta = card.querySelector(".pmeta");
   if(meta){
@@ -667,7 +815,7 @@ function detailFor(id){
     el("div",{class:"hnote"},"Typical pattern — confirm before a special journey."),
     el("div",{class:"actions"},
       tickBtn,
-      d.visited? el("span",{class:"vdate"},"ticked "+(d.date||"")) : null,
+      d.visited? el("span",{class:"vdate"},"ticked "+fmtD(d.date)) : null,
       isLocal(id)? el("span",{class:"localflag"},"saved locally — mention it in the thread to sync") : null),
     el("div",{class:"verdicts"},
       el("span",{class:"vlab"},"Verdict"),
@@ -726,13 +874,15 @@ function renderFeed(){
   }
   const items = [];
   PUBS.forEach(p=>{ const d = eff(p.id); if(d.visited || d.note || d.verdict) items.push({p,d}); });
+  allCasuals().forEach(c=>{ items.push({p:{name:c.name+" (off-list)"}, d:{visited:true, date:c.date, note:c.note, verdict:c.verdict}, cas:c}); });
   items.sort((a,b)=> String(b.d.date||"").localeCompare(String(a.d.date||"")));
   if(!items.length){ ul.append(el("li",{class:"none"},"Nothing captured yet — tick a pub or leave a note and it lands here.")); return; }
-  items.forEach(({p,d})=>{
+  items.forEach(it=>{
+    const {p,d} = it;
     let tx = (d.visited?"\u2713 ":"") + p.name;
     if(d.verdict) tx += " " + VEMOJI[d.verdict];
     if(d.note) tx += " \u2014 " + d.note;
-    if(isLocal(p.id)) tx += "  (local)";
+    if(it.cas ? it.cas.local : isLocal(p.id)) tx += "  (local)";
     ul.append(el("li",{}, el("span",{class:"ts"}, fmtD(d.date)), el("span",{class:"tx"}, tx)));
   });
 }
@@ -747,7 +897,7 @@ let lastMin = londonNow().mins;
 setInterval(()=>{ const m=londonNow().mins; if(m!==lastMin){ lastMin=m; renderNow(); renderList(false); refreshPins(); } }, 15000);
 
 /* ---------- boot: load data.json ---------- */
-renderList(true); renderNow(); renderFeed(); renderScore();
+renderList(true); renderNow(); renderFeed(); renderScore(); renderCasuals(); renderCasualPins();
 fetch("data.json?t="+Date.now(), {cache:"no-store"}).then(r=>r.json()).then(j=>{
   (j.pubs||[]).forEach(row=>{
     if(state.base[row.id]) state.base[row.id] = {visited:!!row.visited, date:row.date||null, note:row.note||"", verdict:row.verdict||null};
@@ -759,6 +909,11 @@ fetch("data.json?t="+Date.now(), {cache:"no-store"}).then(r=>r.json()).then(j=>{
   }
   lsSet("ledger-overrides", state.overrides);
   state.board = j.board||[];
+  state.casualsBase = j.casuals||[];
+  // drop local copies that the thread has since absorbed
+  state.casualsLocal = state.casualsLocal.filter(c=> !state.casualsBase.some(b=>b.id===c.id));
+  saveCasualsLocal();
+  renderCasuals(); renderCasualPins();
   renderList(false); renderNow(); renderFeed(); refreshPins(); renderScore();
 }).catch(()=>{ $("#syncChip").textContent="offline — showing last known"; });
 
