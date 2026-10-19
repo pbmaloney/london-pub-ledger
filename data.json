@@ -51,5 +51,47 @@
    "ts": "9 Oct",
    "text": "Before any crawl, ask in the thread — big football nights pack every pub in zones 1–2."
   }
+ ],
+ "casuals": [
+  {
+   "id": "c-queens-arms-bohem",
+   "name": "Queens Arms Bohem",
+   "area": "Battersea",
+   "lat": 51.46819,
+   "lon": -0.14929,
+   "date": "2026-07-24",
+   "note": "",
+   "verdict": null
+  },
+  {
+   "id": "c-old-town-tavern",
+   "name": "Old Town Tavern",
+   "area": "Clapham Old Town",
+   "lat": 51.46612,
+   "lon": -0.1422,
+   "date": "2026-07-24",
+   "note": "",
+   "verdict": null
+  },
+  {
+   "id": "c-kings-arms-dorking",
+   "name": "The King's Arms",
+   "area": "Dorking (1405)",
+   "lat": 51.23194,
+   "lon": -0.33555,
+   "date": "2026-07-25",
+   "note": "",
+   "verdict": null
+  },
+  {
+   "id": "c-cobbetts",
+   "name": "Cobbetts Beer Shop & Micropub",
+   "area": "Dorking",
+   "lat": 51.23171,
+   "lon": -0.33596,
+   "date": "2026-07-25",
+   "note": "",
+   "verdict": null
+  }
  ]
 }
