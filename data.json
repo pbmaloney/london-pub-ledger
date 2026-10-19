@@ -5,43 +5,43 @@
    "id": "grenadier",
    "visited": true,
    "date": "2026-07-25",
-   "note": "To: Box Hill → Dorking on foot, 2:34 train to Victoria, walked into Belgravia. First of the pair."
+   "note": "Box Hill to Dorking on foot, the 2:34 to Victoria, then walked into Belgravia. First of the pair."
   },
   {
    "id": "nags-head",
    "visited": true,
    "date": "2026-07-25",
-   "note": "Two minutes on from the Grenadier. Out via Harrods food hall, home early evening."
+   "note": "Two minutes on from the Grenadier. Out via Harrods food hall, home early."
   },
   {
    "id": "mayflower",
    "visited": true,
    "date": "2026-07-26",
-   "note": "To: walked from Maltby St via Bermondsey Wall, past The Angel, riverside into Rotherhithe — south bank."
+   "note": "Walked from Maltby St along Bermondsey Wall, past The Angel, into Rotherhithe on the south bank."
   },
   {
    "id": "prospect",
    "visited": true,
    "date": "2026-07-26",
-   "note": "From the Mayflower: one Overground stop, under the Thames through Brunel's 1843 tunnel — south bank to north. Out: Windrush home to CJ."
+   "note": "One stop from the Mayflower, under the Thames through Brunel's 1843 tunnel to the north bank. Windrush home to CJ."
   }
  ],
  "board": [
   {
    "ts": "18 Oct",
-   "text": "Blue Anchor (1722, Hammersmith Bridge) pairs with The Dove (#22): station → bridge → riverside walk → Dove. The West errand, solved."
+   "text": "Blue Anchor (1722, by Hammersmith Bridge) pairs with The Dove: station, bridge, riverside walk, Dove."
   },
   {
    "ts": "17 Oct",
-   "text": "Alternates: Holly Bush on the Heath day (can swap for the Spaniards); Plume of Feathers (1691) on the Greenwich day, 5 min from Trafalgar Tavern."
+   "text": "Alternates: Holly Bush on the Heath day (can stand in for the Spaniards); Plume of Feathers (1691) on the Greenwich day, 5 min from the Trafalgar."
   },
   {
    "ts": "17 Oct",
-   "text": "Churchill Arms (#21) pairing: the tick plus Sunday roast at the Fat Badger or pie at the Pelican, all within a 10-min Notting Hill walk."
+   "text": "Churchill Arms pairing: the tick, then Sunday roast at the Fat Badger or pie at the Pelican, all in a 10-minute Notting Hill walk."
   },
   {
    "ts": "15 Oct",
-   "text": "Old Bank of England (Fleet St, 1888 banking hall) is a pending candidate — Patrick's call. Slots by the Cheshire Cheese."
+   "text": "Old Bank of England (Fleet St, 1888 banking hall) is a pending candidate. It slots in by the Cheshire Cheese."
   },
   {
    "ts": "11 Oct",
@@ -49,7 +49,7 @@
   },
   {
    "ts": "9 Oct",
-   "text": "Before any crawl, ask in the thread — big football nights pack every pub in zones 1–2."
+   "text": "Before any crawl, ask in the thread. Big football nights pack every pub in zones 1-2."
   }
  ],
  "casuals": [

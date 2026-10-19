@@ -212,7 +212,7 @@ footer{margin-top:26px; color:var(--mut); font-size:12px; line-height:1.6}
 
 <section class="mapwrap" aria-label="Pub map">
   <div class="maptools">
-    <button class="btn small primary" id="locBtn">📍 Find me</button>
+    <button class="btn small primary" id="locBtn">Find me</button>
     <button class="btn small" id="fitBtn">Fit all pubs</button>
     <select id="themeSel" aria-label="Colour scheme">
       <option value="roundel">Roundel</option>
@@ -220,7 +220,7 @@ footer{margin-top:26px; color:var(--mut); font-size:12px; line-height:1.6}
       <option value="nightbus">Night Bus</option>
       <option value="green">Bottle Green</option>
     </select>
-    <div class="hint" id="locHint">Location stays on your phone — never uploaded.</div>
+    <div class="hint" id="locHint">Location stays on this phone.</div>
   </div>
   <div id="map"></div>
   <div class="legend">
@@ -234,13 +234,13 @@ footer{margin-top:26px; color:var(--mut); font-size:12px; line-height:1.6}
 
 <section class="now">
   <div class="bh" id="nowHead">Open right now</div>
-  <div class="rows" id="nowRows"><div class="none">Working it out…</div></div>
+  <div class="rows" id="nowRows"><div class="none">Checking…</div></div>
 </section>
 
 <section class="feed">
   <div class="tabs" role="tablist">
     <button class="tab" id="tabLog">Field log</button>
-    <button class="tab" id="tabThread">From the thread</button>
+    <button class="tab" id="tabThread">Thread</button>
   </div>
   <ul id="feedList"></ul>
 </section>
@@ -255,19 +255,19 @@ footer{margin-top:26px; color:var(--mut); font-size:12px; line-height:1.6}
   </div>
   <div id="casForm" hidden>
     <div class="row">
-      <input id="casQ" placeholder="Pub name + area (e.g. Dog &amp; Bell Deptford)" enterkeyhint="search">
+      <input id="casQ" placeholder="Pub name and area" enterkeyhint="search">
       <button class="btn" id="casSearchBtn">Search</button>
     </div>
     <div id="casResults"></div>
-    <div class="cashint" id="casHint">Searches OpenStreetMap. No match? <button class="btn small" id="casAtPin">Add at my location</button></div>
+    <div class="cashint" id="casHint">Searches OpenStreetMap. <button class="btn small" id="casAtPin">Add at my location</button></div>
   </div>
   <div id="casList"></div>
 </section>
 
 <footer>
-  Hours shown are the typical pattern — the ↗ link in each pub checks the live listing before you commit to a journey.
-  The City cluster keeps office hours and part-shuts at weekends.
-  Ticks made here are saved on this phone and flagged until you tell Claude in the running thread, which updates the ledger for every device.
+  Hours are typical patterns; each pub links to its live listing.
+  City pubs keep office hours and part-shut at weekends.
+  Ticks and notes made here stay on this phone until synced through the thread.
 </footer>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
@@ -389,14 +389,14 @@ const PUBS = [
 
 const DAY = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 const CLUSTER_TIPS = {
- "City / Fleet St / Holborn":"Weekday play — half shut at weekends",
+ "City / Fleet St / Holborn":"Half shut at weekends",
  "Covent Garden / Soho":"Pre-theatre territory",
  "Belgravia":"Done 25 Jul",
- "Borough":"Pairs with the market + South Bank walk",
+ "Borough":"Pairs with Borough Market",
  "East riverside":"Windrush line home to CJ",
- "Greenwich":"Build the riverboat day around it",
+ "Greenwich":"Riverboat day",
  "North / Hampstead–Highgate":"The Heath day",
- "West":"The stragglers — each needs a reason"
+ "West":"Each needs a reason"
 };
 const HOME = {name:"Clapham Junction", lat:51.4645, lon:-0.1705};
 
@@ -420,7 +420,7 @@ function statusFor(p, t){
   }
   const [o,c]=today, om=o*60, cm=c*60;
   if(t.mins < om) return {cls:"closed", label:"Opens "+hhmm(o), open:false};
-  if(t.mins >= cm) return {cls:"closed", label:"Closed · was til "+hhmm(c), open:false};
+  if(t.mins >= cm) return {cls:"closed", label:"Closed", open:false};
   if(cm - t.mins <= 60) return {cls:"soon", label:"Last orders soon · "+hhmm(c), open:true};
   return {cls:"open", label:"Open · til "+hhmm(c), open:true};
 }
@@ -604,15 +604,15 @@ function renderCasuals(){
           el("div",{class:"pmeta"},
             el("span",{}, c.area||""),
             c.verdict ? el("span",{}, VEMOJI[c.verdict]) : null,
-            c.note ? el("span",{}, "\u270E noted") : null,
-            c.local ? el("span",{class:"localflag"},"local \u2014 tell Claude") : null)),
+            c.note ? el("span",{}, "noted") : null,
+            c.local ? el("span",{class:"localflag"},"not synced") : null)),
         el("span",{class:"pright"},
           el("span",{class:"pdist"}, c.date ? fmtD(c.date) : ""))));
     list.append(card);
   });
 }
 function casDetail(c){
-  const ta = el("textarea",{placeholder:"Field note \u2014 your words"});
+  const ta = el("textarea",{placeholder:"Your note"});
   ta.value = c.note||"";
   function saveCas(mut){
     let row = state.casualsLocal.find(x=>x.id===c.id);
@@ -622,7 +622,7 @@ function casDetail(c){
   }
   const verdictRow = el("div",{class:"verdicts"},
     el("span",{class:"vlab"},"Verdict"),
-    ...[["top","\u{1F3C6} Top tier"],["solid","\u{1F44D} Solid"],["meh","\u{1F44E} Not for me"]].map(([val,label])=>
+    ...[["top","Top tier"],["solid","Solid"],["meh","Not for me"]].map(([val,label])=>
       el("button",{class:"vchip","aria-pressed":String(c.verdict===val), onclick:()=>saveCas(r=>{ r.verdict = c.verdict===val? null : val; r.note = ta.value.trim(); })}, label)));
   const kids = [
     verdictRow,
@@ -658,7 +658,7 @@ async function casSearch(){
     const r = await fetch("https://nominatim.openstreetmap.org/search?format=jsonv2&limit=6&q="+encodeURIComponent(q), {headers:{"Accept":"application/json"}});
     const rows = await r.json();
     res.innerHTML="";
-    if(!rows.length){ res.append(el("div",{class:"cashint"},"No match \u2014 try adding the area, or use your location.")); return; }
+    if(!rows.length){ res.append(el("div",{class:"cashint"},"No match. Try adding the area.")); return; }
     rows.forEach(row=>{
       const parts = (row.display_name||"").split(",").map(x=>x.trim());
       const area = parts.slice(1,3).join(", ");
@@ -668,7 +668,7 @@ async function casSearch(){
     });
   }catch(e){
     res.innerHTML="";
-    res.append(el("div",{class:"cashint"},"Search unreachable \u2014 use \u201CAdd at my location\u201D or add it in the thread."));
+    res.append(el("div",{class:"cashint"},"Search is unreachable. Use Add at my location."));
   }
 }
 $("#casSearchBtn").addEventListener("click", casSearch);
@@ -688,8 +688,8 @@ function renderNow(){
   if(!state.me){
     $("#nowHead").textContent = "Open right now";
     rows.append(el("div",{class:"none"},
-      open.length ? open.length+" of the remaining pubs are pouring right now (London time). Tap “Find me” to sort by distance."
-                  : "None of the remaining pubs are open right now — the City cluster keeps office hours."));
+      open.length ? open.length+" of the remaining pubs are open now, London time."
+                  : "None of the remaining pubs are open right now."));
     return;
   }
   $("#nowHead").textContent = "Nearest open · live";
@@ -706,7 +706,7 @@ function renderNow(){
 }
 
 /* ---------- list ---------- */
-const VEMOJI = {top:"🏆", solid:"👍", meh:"👎"};
+const VEMOJI = {top:"Top tier", solid:"Solid", meh:"Not for me"};
 const clustersEl = $("#clusters");
 function cssId(s){ return s.replace(/[^a-z0-9]+/gi,"-").toLowerCase(); }
 function renderList(rebuild=true){
@@ -745,8 +745,8 @@ function pubCard(p,t){
       el("div",{class:"pmeta"},
         el("span",{}, p.station),
         d.verdict ? el("span",{}, VEMOJI[d.verdict]) : null,
-        d.note ? el("span",{}, "✎ noted") : null,
-        isLocal(p.id) ? el("span",{class:"localflag"},"local — tell Claude") : null)),
+        d.note ? el("span",{}, "noted") : null,
+        isLocal(p.id) ? el("span",{class:"localflag"},"not synced") : null)),
     el("span",{class:"pright"},
       el("span",{class:"status "+(d.visited?"open":st.cls), id:"st-"+p.id}, d.visited ? "✓ "+(d.date? fmtD(d.date):"done") : st.label),
       el("span",{class:"pdist", id:"dist-"+p.id}, km!=null ? walkTxt(km) : ""))));
@@ -765,8 +765,8 @@ function updatePubCard(p,t){
     meta.innerHTML="";
     meta.append(el("span",{},p.station));
     if(d.verdict) meta.append(el("span",{}, VEMOJI[d.verdict]));
-    if(d.note) meta.append(el("span",{},"✎ noted"));
-    if(isLocal(p.id)) meta.append(el("span",{class:"localflag"},"local — tell Claude"));
+    if(d.note) meta.append(el("span",{},"noted"));
+    if(isLocal(p.id)) meta.append(el("span",{class:"localflag"},"not synced"));
   }
 }
 function toggleDetail(id){
@@ -792,7 +792,7 @@ function detailFor(id){
     const cls = dow===t.dow ? "today":"";
     hours.append(el("span",{class:cls}, DAY[dow]), el("span",{class:cls}, h? hhmm(h[0])+"–"+hhmm(h[1]) : "closed"));
   }
-  const ta = el("textarea",{id:"note-"+id, placeholder:"Note to self — what to order, who to bring, what the barman said…"});
+  const ta = el("textarea",{id:"note-"+id, placeholder:"Your note"});
   ta.value = d.note||"";
   const saveBtn = el("button",{class:"btn", onclick:()=>{
     setOverride(id, {...eff(id), note: ta.value.trim()});
@@ -812,11 +812,11 @@ function detailFor(id){
       el("span",{}, "Nearest: "+p.station),
       el("a",{href:gmaps, target:"_blank", rel:"noopener"},"Live hours & directions ↗")),
     hours,
-    el("div",{class:"hnote"},"Typical pattern — confirm before a special journey."),
+    el("div",{class:"hnote"},"Typical hours. Confirm before a long trip."),
     el("div",{class:"actions"},
       tickBtn,
       d.visited? el("span",{class:"vdate"},"ticked "+fmtD(d.date)) : null,
-      isLocal(id)? el("span",{class:"localflag"},"saved locally — mention it in the thread to sync") : null),
+      isLocal(id)? el("span",{class:"localflag"},"not synced yet") : null),
     el("div",{class:"verdicts"},
       el("span",{class:"vlab"},"Verdict"),
       ...[["top","🏆 Top tier"],["solid","👍 Solid"],["meh","👎 Not for me"]].map(([val,label])=>
@@ -852,7 +852,7 @@ function renderScore(){
   $("#roundelCount").textContent = done+"/"+PUBS.length;
   $("#subTitle").textContent = "London pubs: been, found, and still owed";
   const n = Object.keys(state.overrides).length;
-  $("#syncChip").textContent = n ? n+" local change"+(n>1?"s":"")+" — tell Claude" : "in sync with the thread";
+  $("#syncChip").textContent = n ? n+" unsynced" : "synced";
 }
 let feedMode = lsGet("ledger-feedmode") || "log";
 function fmtD(iso){
@@ -876,11 +876,11 @@ function renderFeed(){
   PUBS.forEach(p=>{ const d = eff(p.id); if(d.visited || d.note || d.verdict) items.push({p,d}); });
   allCasuals().forEach(c=>{ items.push({p:{name:c.name+" (off-list)"}, d:{visited:true, date:c.date, note:c.note, verdict:c.verdict}, cas:c}); });
   items.sort((a,b)=> String(b.d.date||"").localeCompare(String(a.d.date||"")));
-  if(!items.length){ ul.append(el("li",{class:"none"},"Nothing captured yet — tick a pub or leave a note and it lands here.")); return; }
+  if(!items.length){ ul.append(el("li",{class:"none"},"No entries yet.")); return; }
   items.forEach(it=>{
     const {p,d} = it;
     let tx = (d.visited?"\u2713 ":"") + p.name;
-    if(d.verdict) tx += " " + VEMOJI[d.verdict];
+    if(d.verdict) tx += " · " + VEMOJI[d.verdict];
     if(d.note) tx += " \u2014 " + d.note;
     if(it.cas ? it.cas.local : isLocal(p.id)) tx += "  (local)";
     ul.append(el("li",{}, el("span",{class:"ts"}, fmtD(d.date)), el("span",{class:"tx"}, tx)));
@@ -915,7 +915,7 @@ fetch("data.json?t="+Date.now(), {cache:"no-store"}).then(r=>r.json()).then(j=>{
   saveCasualsLocal();
   renderCasuals(); renderCasualPins();
   renderList(false); renderNow(); renderFeed(); refreshPins(); renderScore();
-}).catch(()=>{ $("#syncChip").textContent="offline — showing last known"; });
+}).catch(()=>{ $("#syncChip").textContent="offline"; });
 
 if("serviceWorker" in navigator){ navigator.serviceWorker.register("sw.js").catch(()=>{}); }
 </script>
