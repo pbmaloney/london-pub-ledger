@@ -442,10 +442,13 @@ const state = {
 };
 PUBS.forEach(p => state.base[p.id] = {visited:false, date:null, note:"", verdict:null});
 function lsGet(k){ try{ return JSON.parse(localStorage.getItem(k)); }catch(e){ return null; } }
+function normV(v){ return v==="top" ? "peak" : (v||null); }
 function lsSet(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
 state.overrides = lsGet("ledger-overrides") || {};
+for(const k in state.overrides){ if(state.overrides[k]) state.overrides[k].verdict = normV(state.overrides[k].verdict); }
 state.casualsBase = [];
 state.casualsLocal = lsGet("ledger-casuals") || [];
+state.casualsLocal.forEach(c=>{ c.verdict = normV(c.verdict); });
 function allCasuals(){
   const seen = {};
   const out = [];
@@ -622,7 +625,7 @@ function casDetail(c){
   }
   const verdictRow = el("div",{class:"verdicts"},
     el("span",{class:"vlab"},"Verdict"),
-    ...[["top","Top tier"],["solid","Solid"],["meh","Not for me"]].map(([val,label])=>
+    ...[["peak","Peak"],["solid","Solid"],["mid","Mid"],["meh","Meh"]].map(([val,label])=>
       el("button",{class:"vchip","aria-pressed":String(c.verdict===val), onclick:()=>saveCas(r=>{ r.verdict = c.verdict===val? null : val; r.note = ta.value.trim(); })}, label)));
   const kids = [
     verdictRow,
@@ -706,7 +709,7 @@ function renderNow(){
 }
 
 /* ---------- list ---------- */
-const VEMOJI = {top:"Top tier", solid:"Solid", meh:"Not for me"};
+const VEMOJI = {peak:"Peak", solid:"Solid", mid:"Mid", meh:"Meh"};
 const clustersEl = $("#clusters");
 function cssId(s){ return s.replace(/[^a-z0-9]+/gi,"-").toLowerCase(); }
 function renderList(rebuild=true){
@@ -819,7 +822,7 @@ function detailFor(id){
       isLocal(id)? el("span",{class:"localflag"},"not synced yet") : null),
     el("div",{class:"verdicts"},
       el("span",{class:"vlab"},"Verdict"),
-      ...[["top","🏆 Top tier"],["solid","👍 Solid"],["meh","👎 Not for me"]].map(([val,label])=>
+      ...[["peak","Peak"],["solid","Solid"],["mid","Mid"],["meh","Meh"]].map(([val,label])=>
         el("button",{class:"vchip","aria-pressed":String(d.verdict===val), onclick:()=>{
           setOverride(id, {...eff(id), note: ta.value.trim(), verdict: d.verdict===val? null : val});
         }}, label))),
@@ -900,7 +903,7 @@ setInterval(()=>{ const m=londonNow().mins; if(m!==lastMin){ lastMin=m; renderNo
 renderList(true); renderNow(); renderFeed(); renderScore(); renderCasuals(); renderCasualPins();
 fetch("data.json?t="+Date.now(), {cache:"no-store"}).then(r=>r.json()).then(j=>{
   (j.pubs||[]).forEach(row=>{
-    if(state.base[row.id]) state.base[row.id] = {visited:!!row.visited, date:row.date||null, note:row.note||"", verdict:row.verdict||null};
+    if(state.base[row.id]) state.base[row.id] = {visited:!!row.visited, date:row.date||null, note:row.note||"", verdict:normV(row.verdict)};
   });
   // drop overrides that now match the thread
   for(const id in state.overrides){
@@ -909,7 +912,7 @@ fetch("data.json?t="+Date.now(), {cache:"no-store"}).then(r=>r.json()).then(j=>{
   }
   lsSet("ledger-overrides", state.overrides);
   state.board = j.board||[];
-  state.casualsBase = j.casuals||[];
+  state.casualsBase = (j.casuals||[]).map(c=>({...c, verdict:normV(c.verdict)}));
   // drop local copies that the thread has since absorbed
   state.casualsLocal = state.casualsLocal.filter(c=> !state.casualsBase.some(b=>b.id===c.id));
   saveCasualsLocal();
