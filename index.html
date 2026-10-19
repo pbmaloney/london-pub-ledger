@@ -567,11 +567,11 @@ $("#locBtn").addEventListener("click",()=>{
     } else { meMarker.setLatLng(state.me); meRing.setLatLng(state.me).setRadius(pos.coords.accuracy||30); }
     if(first) map.setView(state.me, 15);
     const inLondon = haversineKm(state.me,[51.5074,-0.1278]) < 60;
-    $("#locHint").textContent = inLondon ? "Live — sorted by distance." : "Live (you're not in London — distances hidden).";
+    $("#locHint").textContent = inLondon ? "Live. Sorted by distance." : "Live. Outside London, so distances are hidden.";
     if(!inLondon) state.me = null;
     renderNow(); renderList(false);
   }, err=>{
-    $("#locHint").textContent = err.code===1 ? "Location declined — tap a pin instead." : "No fix — try again outside.";
+    $("#locHint").textContent = err.code===1 ? "Location declined." : "No fix. Try again outdoors.";
   }, {enableHighAccuracy:true, maximumAge:15000, timeout:20000});
 });
 
