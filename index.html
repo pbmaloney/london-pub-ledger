@@ -18,7 +18,7 @@
   --bg:#f2f1ea; --panel:#fbfaf5; --ink:#1d2127; --mut:#656e76; --line:#d9d6c8;
   --red:#dc241f; --red-ink:#ffffff;
   --green:#2a7a44; --amber:#a86f0e;
-  --chip:#e9e7db; --focus:#2b5fab;
+  --chip:#e9e7db; --focus:#2b5fab; --tan:#c9a36a;
   --font-ui:"Hanken Grotesk",-apple-system,"Segoe UI",sans-serif;
   --font-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
 }
@@ -27,7 +27,7 @@
     --bg:#13171b; --panel:#1b2127; --ink:#e9e7de; --mut:#9aa3ac; --line:#2c343c;
     --red:#e2453f; --red-ink:#ffffff;
     --green:#5cab73; --amber:#d49c3f;
-    --chip:#242c33; --focus:#7aa7e8;
+    --chip:#242c33; --focus:#7aa7e8; --tan:#c29a60;
     color-scheme: dark;
   }
 }
@@ -84,19 +84,19 @@ header{display:flex; align-items:center; gap:14px; padding-block:18px 10px; flex
 .legend{display:flex; gap:16px; padding:8px 12px 10px; font-size:11.5px; color:var(--mut); flex-wrap:wrap}
 .legend span{display:inline-flex; align-items:center; gap:6px}
 .k{width:12px; height:12px; border-radius:50%; flex:0 0 auto}
-.k.un{background:var(--panel); border:2px solid var(--red)}
-.k.vis{background:var(--mut); opacity:.6}
+.k.un{background:var(--red); border:2px solid var(--ink)}
+.k.vis{background:var(--tan); border:2px solid var(--ink)}
 .k.op{border:2.5px solid var(--green); background:transparent}
 .k.me{background:#2b7de1; border:2px solid #fff; box-shadow:0 0 0 1.5px #2b7de1}
 
 .pubpin{display:grid; place-items:center; width:30px; height:30px; border-radius:50%;
-  background:var(--panel); border:2.5px solid var(--red); color:var(--red);
+  background:var(--panel); border:2.5px solid var(--ink); color:var(--red);
   font-family:var(--font-mono); font-size:12px; font-weight:600; box-shadow:0 1px 4px rgba(0,0,0,.35)}
-.pubpin.visited{background:var(--chip); border-color:var(--line); color:var(--mut); opacity:.85}
+.pubpin.visited{background:var(--tan); border-color:var(--ink); color:#241c10}
 .pubpin.openN{box-shadow:0 0 0 3px var(--green), 0 1px 4px rgba(0,0,0,.35)}
 .pubdot{border-radius:50%; box-shadow:0 1px 3px rgba(0,0,0,.3)}
-.pubdot.todo{width:13px; height:13px; background:var(--red); border:2px solid var(--panel)}
-.pubdot.visited{width:10px; height:10px; background:var(--mut); opacity:.55; border:2px solid var(--panel)}
+.pubdot.todo{width:13px; height:13px; background:var(--red); border:2px solid var(--ink)}
+.pubdot.visited{width:12px; height:12px; background:var(--tan); border:2px solid var(--ink)}
 .pubdot.openN{box-shadow:0 0 0 3px var(--green), 0 1px 3px rgba(0,0,0,.3)}
 select{font:inherit; font-size:12.5px; font-weight:600; color:var(--ink); background:var(--chip);
   border:1px solid var(--line); border-radius:7px; padding:6px 8px}
@@ -104,8 +104,8 @@ select{font:inherit; font-size:12.5px; font-weight:600; color:var(--ink); backgr
 .verdicts .vlab{font-size:11px; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:var(--mut); margin-right:2px}
 .vchip{border:1.5px solid var(--line); background:transparent; border-radius:99px; padding:5px 12px; font-size:12.5px; font-weight:600; color:var(--mut)}
 .vchip[aria-pressed="true"]{border-color:var(--red); color:var(--red)}
-.casdot{width:12px; height:12px; border-radius:50%; background:var(--amber); border:2px solid var(--panel); box-shadow:0 1px 3px rgba(0,0,0,.3)}
-.k.cas{background:var(--amber)}
+.casdot{width:12px; height:12px; border-radius:50%; background:var(--tan); border:2px solid var(--panel); box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.k.cas{background:var(--tan)}
 .casuals{margin-top:20px}
 .casuals .ch{display:flex; align-items:center; gap:10px; margin-bottom:8px; flex-wrap:wrap}
 .casuals .ch h2{font-size:13px; font-weight:800; letter-spacing:.09em; text-transform:uppercase}
@@ -145,7 +145,7 @@ select{font:inherit; font-size:12.5px; font-weight:600; color:var(--ink); backgr
 .pubrow{display:flex; align-items:center; gap:12px; width:100%; background:none; border:0; text-align:left; padding:11px 13px}
 .num{flex:0 0 26px; width:26px; height:26px; border-radius:50%; border:2px solid var(--red);
   display:grid; place-items:center; font-family:var(--font-mono); font-size:11.5px; font-weight:600; background:var(--panel); color:var(--red)}
-.pub.visited .num{background:var(--chip); border-color:var(--line); color:var(--mut)}
+.pub.visited .num{background:var(--tan); border-color:var(--ink); color:#241c10}
 .pmain{flex:1 1 auto; min-width:0}
 .pname{font-weight:700; font-size:15.5px}
 .pmeta{color:var(--mut); font-size:12.5px; display:flex; gap:8px; flex-wrap:wrap}
@@ -225,9 +225,9 @@ footer{margin-top:26px; color:var(--mut); font-size:12px; line-height:1.6}
   <div id="map"></div>
   <div class="legend">
     <span><span class="k un"></span> to do</span>
-    <span><span class="k vis"></span> ticked off</span>
+    <span><span class="k vis"></span> visited</span>
     <span><span class="k op"></span> open right now</span>
-    <span><span class="k cas"></span> liked, off-list</span>
+    <span><span class="k cas"></span> off-list visit</span>
     <span><span class="k me"></span> you</span>
   </div>
 </section>
@@ -249,7 +249,7 @@ footer{margin-top:26px; color:var(--mut); font-size:12px; line-height:1.6}
 
 <section class="casuals">
   <div class="ch">
-    <h2>Visited &amp; liked</h2>
+    <h2>Off-list visits</h2>
     <span class="cn" id="casCount"></span>
     <button class="btn small" id="casAddBtn">+ Add a pub</button>
   </div>
@@ -578,7 +578,7 @@ $("#locBtn").addEventListener("click",()=>{
 /* ---------- visited & liked (off-list) ---------- */
 let casMarkers = {};
 function casPopup(c){
-  return `<b>${c.name}</b><br><span class="pp-status">liked \u2014 off-list</span>`+
+  return `<b>${c.name}</b><br><span class="pp-status">off-list visit</span>`+
     (c.date? `<br>visited ${fmtD(c.date)}`:"") + (c.note? `<br>${c.note}`:"");
 }
 function renderCasualPins(){
@@ -598,7 +598,7 @@ function renderCasuals(){
   cs.forEach(c=>{
     const card = el("div",{class:"pub"},
       el("button",{class:"pubrow", onclick:()=>{ const ex=card.querySelector(".detail"); if(ex){ex.remove();return;} card.append(casDetail(c)); }},
-        el("span",{class:"num", style:"border-color:var(--amber); color:var(--amber)"}, "\u25CF"),
+        el("span",{class:"num", style:"border-color:var(--tan); color:var(--tan)"}, "\u25CF"),
         el("span",{class:"pmain"},
           el("div",{class:"pname"}, c.name),
           el("div",{class:"pmeta"},
