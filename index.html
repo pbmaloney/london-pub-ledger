@@ -105,6 +105,8 @@ select{font:inherit; font-size:12.5px; font-weight:600; color:var(--ink); backgr
 .vchip{border:1.5px solid var(--line); background:transparent; border-radius:99px; padding:5px 12px; font-size:12.5px; font-weight:600; color:var(--mut)}
 .vchip[aria-pressed="true"]{border-color:var(--red); color:var(--red)}
 .casdot{width:12px; height:12px; border-radius:50%; background:var(--tan); border:2px solid var(--panel); box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.scoutdot{width:12px; height:12px; border-radius:50%; background:var(--panel); border:2px solid var(--mut); opacity:.9; box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.k.scout{background:var(--panel); border:2px solid var(--mut)}
 .k.cas{background:var(--tan)}
 .casuals{margin-top:20px}
 .casuals .ch{display:flex; align-items:center; gap:10px; margin-bottom:8px; flex-wrap:wrap}
@@ -228,6 +230,7 @@ footer{margin-top:26px; color:var(--mut); font-size:12px; line-height:1.6}
     <span><span class="k vis"></span> visited</span>
     <span><span class="k op"></span> open right now</span>
     <span><span class="k cas"></span> off-list visit</span>
+    <span><span class="k scout"></span> worth a detour</span>
     <span><span class="k me"></span> you</span>
   </div>
 </section>
@@ -246,6 +249,14 @@ footer{margin-top:26px; color:var(--mut); font-size:12px; line-height:1.6}
 </section>
 
 <div class="clusters" id="clusters"></div>
+
+<section class="casuals" id="scoutSection">
+  <div class="ch">
+    <h2>Worth a detour</h2>
+    <span class="cn" id="scoutCount"></span>
+  </div>
+  <div id="scoutList"></div>
+</section>
 
 <section class="casuals">
   <div class="ch">
@@ -589,6 +600,52 @@ $("#locBtn").addEventListener("click",()=>{
   }, {enableHighAccuracy:true, maximumAge:15000, timeout:20000});
 });
 
+/* ---------- worth a detour (tier two) ---------- */
+state.scouted = [];
+state.scoutDone = lsGet("ledger-scout-done") || [];
+let scoutMarkers = {};
+function activeScouted(){ return state.scouted.filter(c=> !state.scoutDone.includes(c.id)); }
+function renderScoutPins(){
+  for(const id in scoutMarkers){ map.removeLayer(scoutMarkers[id]); }
+  scoutMarkers = {};
+  activeScouted().forEach(c=>{
+    const m = L.marker([c.lat,c.lon], {icon:L.divIcon({className:"", html:'<div class="scoutdot"></div>', iconSize:[16,16], iconAnchor:[8,8], popupAnchor:[0,-8]})}).addTo(map);
+    m.bindPopup(()=>`<b>${c.name}</b><br><span class="pp-status">worth a detour</span>`+(c.why? `<br>${c.why}`:""));
+    scoutMarkers[c.id]=m;
+  });
+}
+function renderScouted(){
+  const list = $("#scoutList"); if(!list) return;
+  list.innerHTML="";
+  const cs = activeScouted();
+  $("#scoutCount").textContent = cs.length ? String(cs.length) : "";
+  $("#scoutSection").hidden = !cs.length;
+  cs.forEach(c=>{
+    const card = el("div",{class:"pub"},
+      el("button",{class:"pubrow", onclick:()=>{ const ex=card.querySelector(".detail"); if(ex){ex.remove();return;} card.append(scoutDetail(c)); }},
+        el("span",{class:"num", style:"border-color:var(--mut); color:var(--mut)"}, "\u25CB"),
+        el("span",{class:"pmain"},
+          el("div",{class:"pname"}, c.name),
+          el("div",{class:"pmeta"}, el("span",{}, c.area||""))),
+        el("span",{class:"pright"})));
+    list.append(card);
+  });
+}
+function scoutDetail(c){
+  return el("div",{class:"detail"},
+    el("div",{class:"blurb"}, c.why||""),
+    el("div",{class:"factline"},
+      el("a",{href:"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(c.name+" "+(c.area||"London")), target:"_blank", rel:"noopener"},"Map and hours \u2197")),
+    el("div",{class:"actions"},
+      el("button",{class:"btn primary", onclick:()=>{
+        state.casualsLocal.push({id:"c-"+c.id, name:c.name, area:c.area||"", lat:c.lat, lon:c.lon, date: fmtISO.format(new Date()), note:"", verdict:null});
+        state.scoutDone.push(c.id);
+        lsSet("ledger-scout-done", state.scoutDone);
+        saveCasualsLocal();
+        renderScouted(); renderScoutPins(); renderCasuals(); renderCasualPins(); renderFeed();
+      }},"I went")));
+}
+
 /* ---------- visited & liked (off-list) ---------- */
 let casMarkers = {};
 function casPopup(c){
@@ -924,6 +981,8 @@ fetch("data.json?t="+Date.now(), {cache:"no-store"}).then(r=>r.json()).then(j=>{
   lsSet("ledger-overrides", state.overrides);
   state.board = j.board||[];
   state.casualsBase = (j.casuals||[]).map(c=>({...c, verdict:normV(c.verdict)}));
+  state.scouted = j.scouted||[];
+  renderScouted(); renderScoutPins();
   // drop local copies that the thread has since absorbed
   state.casualsLocal = state.casualsLocal.filter(c=> !state.casualsBase.some(b=>b.id===c.id));
   saveCasualsLocal();

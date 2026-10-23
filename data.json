@@ -28,6 +28,10 @@
  ],
  "board": [
   {
+   "ts": "22 Oct",
+   "text": "Worth a detour tier added: seven pubs with substance but no icon claim. Influencer gimmicks (Ship & Shovell, Aragon House, Cross Keys) cut."
+  },
+  {
    "ts": "21 Oct",
    "text": "Silver Cross Tavern (Westminster) and Newman Arms (Fitzrovia) added from the Georgian brothel crawl reel; the Cheshire Cheese gains its 1740s plaster-panel footnote. List is 24."
   },
@@ -96,6 +100,64 @@
    "date": "2026-07-25",
    "note": "",
    "verdict": null
+  }
+ ],
+ "scouted": [
+  {
+   "id": "old-bank-of-england",
+   "name": "Old Bank of England",
+   "area": "Fleet St",
+   "lat": 51.51394,
+   "lon": -0.11147,
+   "why": "The 1888 Law Courts branch of the Bank of England, now a pub with a grand banking-hall interior. Your pending tier-one candidate."
+  },
+  {
+   "id": "holly-bush",
+   "name": "The Holly Bush",
+   "area": "Hampstead",
+   "lat": 51.55789,
+   "lon": -0.17932,
+   "why": "Licensed 1807 in a 1790s house, a warren of dark rooms in Hampstead village. Heath-day alternate; can stand in for the Spaniards."
+  },
+  {
+   "id": "plume-of-feathers",
+   "name": "The Plume of Feathers",
+   "area": "Greenwich",
+   "lat": 51.48185,
+   "lon": -0.00113,
+   "why": "Greenwich's oldest pub, 1691, five minutes from the Trafalgar Tavern. Bonus stop on the riverboat day."
+  },
+  {
+   "id": "blue-anchor",
+   "name": "The Blue Anchor",
+   "area": "Hammersmith",
+   "lat": 51.4896,
+   "lon": -0.23085,
+   "why": "Rowers' pub from 1722 at Hammersmith Bridge. Opens the Thames Path walk to the Dove."
+  },
+  {
+   "id": "white-horse",
+   "name": "The White Horse",
+   "area": "Parsons Green",
+   "lat": 51.47442,
+   "lon": -0.20031,
+   "why": "Serious cask and bottle program with long-running beer festivals. The strongest beer destination off the list."
+  },
+  {
+   "id": "dog-and-bell",
+   "name": "The Dog & Bell",
+   "area": "Deptford",
+   "lat": 51.48326,
+   "lon": -0.02573,
+   "why": "Multiple-time CAMRA pub of the year for southeast London. A local's local with no tourist profile."
+  },
+  {
+   "id": "williamsons-tavern",
+   "name": "Williamson's Tavern",
+   "area": "City, Groveland Court",
+   "lat": 51.5128,
+   "lon": -0.0937,
+   "why": "Former Lord Mayors' residence with gates gifted by William and Mary, by one claim the exact centre of the City. On the crawl line."
   }
  ]
 }
