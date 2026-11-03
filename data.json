@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-18",
+ "updated": "2026-11-02",
  "pubs": [
   {
    "id": "grenadier",
@@ -27,6 +27,10 @@
   }
  ],
  "board": [
+  {
+   "ts": "2 Nov",
+   "text": "Time Out's 50 best pubs vetted: The Lamb and Coach & Horses join the list; seven more go to Worth a detour. Seven Stars, French House and the Nag's Head were already on the list."
+  },
   {
    "ts": "22 Oct",
    "text": "Worth a detour tier added: seven pubs with substance but no icon claim. Influencer gimmicks (Ship & Shovell, Aragon House, Cross Keys) cut."
@@ -158,6 +162,62 @@
    "lat": 51.5128,
    "lon": -0.0937,
    "why": "Former Lord Mayors' residence with gates gifted by William and Mary, by one claim the exact centre of the City. On the crawl line."
+  },
+  {
+   "id": "shakespeares-head",
+   "name": "Shakespeares Head",
+   "area": "Clerkenwell",
+   "lat": 51.52946,
+   "lon": -0.10679,
+   "why": "Time Out's 2026 Pub of the Year. Opposite Sadler's Wells, with a big garden and performer photos on the walls. An easy evening from the King's Cross office."
+  },
+  {
+   "id": "the-cockpit",
+   "name": "The Cockpit",
+   "area": "City, St Andrew's Hill",
+   "lat": 51.51269,
+   "lon": -0.10149,
+   "why": "Handsome corner pub near St Paul's with history said to reach back to the 1500s. Three minutes from the Blackfriar."
+  },
+  {
+   "id": "lord-clyde",
+   "name": "Lord Clyde",
+   "area": "Southwark, Clennam Street",
+   "lat": 51.5027,
+   "lon": -0.09561,
+   "why": "Grade II listed, 1930s interior. Two minutes from the George Inn."
+  },
+  {
+   "id": "windsor-castle",
+   "name": "Windsor Castle",
+   "area": "Notting Hill, Campden Hill Road",
+   "lat": 51.50629,
+   "lon": -0.1984,
+   "why": "Victorian snob screens and tiny doors between the bars. About ten minutes from the Churchill Arms."
+  },
+  {
+   "id": "the-duke",
+   "name": "The Duke",
+   "area": "Bloomsbury, Roger Street",
+   "lat": 51.5228,
+   "lon": -0.11655,
+   "why": "Art deco mews pub with mahogany booths and old mirrors. A few minutes from The Lamb."
+  },
+  {
+   "id": "southampton-arms",
+   "name": "Southampton Arms",
+   "area": "Gospel Oak, Highgate Road",
+   "lat": 51.55606,
+   "lon": -0.1462,
+   "why": "Victorian ale house on the edge of Hampstead Heath, known for dark wood and pork rolls. Fits the Heath day."
+  },
+  {
+   "id": "carlton-tavern",
+   "name": "Carlton Tavern",
+   "area": "Maida Vale",
+   "lat": 51.53202,
+   "lon": -0.19141,
+   "why": "Illegally demolished by a developer, then rebuilt brick by brick on council orders and reopened in 2021."
   }
  ]
 }
